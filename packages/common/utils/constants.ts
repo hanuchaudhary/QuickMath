@@ -19,7 +19,7 @@ export const DEFAULT_GAME_CONFIG_BY_TYPE: Record<GameType, GameConfig> = {
     maxPlayersCount: 2,
     questionsCount: 100,
     difficulty: "medium",
-    timeLimit: 60,
+    timeLimit: 120, 
   },
   [GameType.FASTEST_FINGER_FIRST]: {
     maxPlayersCount: 3,

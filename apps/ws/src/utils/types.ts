@@ -18,8 +18,8 @@ export type GameRoom = {
   
   questions: GameQuestion[];
   
-  startedAt: number;
-  endsAt: number;
+  startedAt?: number;
+  endedAt?: number;
 
   currentQuestion?: {
     id: string;

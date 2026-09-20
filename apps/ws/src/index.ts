@@ -32,6 +32,21 @@ function broadcastToRoom(room: GameRoom, message: unknown) {
   }
 }
 
+function finishGame(room: GameRoom) {
+  if (room.status !== "PLAYING") {
+    return;
+  }
+
+  room.status = "FINISHED";
+
+  broadcastToRoom(room, {
+    type: "GAME_FINISHED",
+    data: {
+      roomId: room.id,
+    },
+  });
+}
+
 wss.on("connection", (ws, req) => {
   const token = req.url?.split("?token=")[1];
 
@@ -182,12 +197,20 @@ wss.on("connection", (ws, req) => {
               );
 
               gameRoom.questions = questions;
+              gameRoom.startedAt = Date.now();
+              gameRoom.endedAt =
+                gameRoom.startedAt + gameConfig.timeLimit * 1000;
+
               broadcastToRoom(gameRoom, {
                 type: "QUESTIONS",
                 data: {
                   question: gameRoom.questions[0]!,
                 },
               });
+
+              setTimeout(() => {
+                finishGame(gameRoom);
+              }, gameConfig.timeLimit * 1000);
             }, 3000);
           }
         } else {
@@ -198,8 +221,6 @@ wss.on("connection", (ws, req) => {
             players: [user.id],
             status: "WAITING",
             questions: [],
-            startedAt: Date.now(),
-            endsAt: Date.now() + gameConfig.timeLimit * 1000,
           };
 
           gameRooms.set(gameRoom.id, gameRoom);
@@ -251,7 +272,8 @@ wss.on("connection", (ws, req) => {
           return;
         }
 
-        if (gameRoom.endsAt < Date.now() || gameRoom.status == "FINISHED") {
+        if (gameRoom.endedAt! < Date.now() || gameRoom.status === "FINISHED") {
+          finishGame(gameRoom);
           ws.send(JSON.stringify({ type: "ERROR", payload: "Game has ended" }));
           return;
         }
