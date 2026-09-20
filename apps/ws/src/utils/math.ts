@@ -1,4 +1,6 @@
-type Difficulty = "easy" | "medium" | "hard";
+import type { GameDifficulty } from "@matix/common";
+
+export type Difficulty = GameDifficulty;
 
 interface Question {
   id: number;
@@ -94,7 +96,7 @@ export function generateQuiz(numQuestions: number, difficulty: Difficulty): Ques
   const seen = new Set<string>();
 
   while (questions.length < numQuestions) {
-    const q = generateOne(questions.length + 1, difficulty);
+    const q = generateOne(questions.length, difficulty);
     if (seen.has(q.question)) continue;
     seen.add(q.question);
     questions.push(q);

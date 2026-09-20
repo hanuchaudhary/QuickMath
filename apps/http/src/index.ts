@@ -7,4 +7,8 @@ const PORT = 8000;
 app.use(express.json());
 app.use("/api/v1/auth", authRouter);
 
-app.listen(PORT, () => console.log(`http server running on port ${PORT}`));
+app.get("/health", (req, res) => {
+  res.status(200).json({ message: "OK" });
+});
+
+app.listen(PORT, () => console.log(`Http server running on port ${PORT}`));

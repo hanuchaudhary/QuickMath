@@ -3,12 +3,18 @@ import bcrypt from "bcryptjs";
 
 const jwtSecret = process.env.JWT_SECRET!;
 
-export const generateToken = (payload: any) => {
-  return jwt.sign(payload, jwtSecret, { expiresIn: "1h" });
+export interface JwtPayload {
+  id: string;
+  username: string;
+  avatar: string;
+}
+
+export const generateToken = (payload: JwtPayload) => {
+  return jwt.sign(payload, jwtSecret, { expiresIn: "240h" }) as string;
 };
 
 export const verifyToken = (token: string) => {
-  return jwt.verify(token, jwtSecret);
+  return jwt.verify(token, jwtSecret) as JwtPayload;
 };
 
 export const hashPassword = (password: string) => {

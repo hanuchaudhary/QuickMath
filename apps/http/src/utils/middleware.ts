@@ -16,6 +16,6 @@ export const authMiddleware = (
     res.status(401).json({ message: "Unauthorized" });
     return;
   }
-  req.user = decoded as { userId: string; username: string; avatar: string };
+  req.user = { ...decoded };
   next();
 };

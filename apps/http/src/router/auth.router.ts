@@ -3,6 +3,7 @@ import { prisma } from "@matix/db";
 import { loginSchema, registerSchema } from "@matix/common";
 import { comparePassword, generateToken, hashPassword } from "../utils/auth";
 import { authMiddleware } from "../utils/middleware";
+import { getRandomUsername } from "../utils/lib";
 
 export const authRouter = Router();
 
@@ -10,14 +11,24 @@ authRouter.post("/register", async (req: Request, res: Response) => {
   try {
     const { success, data, error } = registerSchema.safeParse(req.body);
     if (!success) {
-      res.status(400).json({ message: error.message });
+      res.status(400).json({ message: error.issues[0]?.message });
       return;
     }
-    const { username, email, password, avatar } = data;
+
+    const { email, password } = data;
     const hashedPassword = await hashPassword(password);
+
+    const username = email.split("@")[0] || getRandomUsername() || "";
+
     const user = await prisma.user.create({
-      data: { username, email, password: hashedPassword, avatar: avatar || "" },
+      data: {
+        username,
+        email,
+        password: hashedPassword,
+        avatar: "",
+      },
     });
+
     res.status(201).json({
       message: "User created successfully",
       user: {
@@ -32,11 +43,11 @@ authRouter.post("/register", async (req: Request, res: Response) => {
   }
 });
 
-authRouter.post("/login", async (req: Request, res: Response) => {
+authRouter.post("/signin", async (req: Request, res: Response) => {
   try {
     const { success, data, error } = loginSchema.safeParse(req.body);
     if (!success) {
-      res.status(400).json({ message: error.message });
+      res.status(400).json({ message: error.issues[0]?.message });
       return;
     }
     const { email, password } = data;
@@ -50,7 +61,11 @@ authRouter.post("/login", async (req: Request, res: Response) => {
       res.status(401).json({ message: "Invalid email or password" });
       return;
     }
-    const token = generateToken({ userId: user.id });
+    const token = generateToken({
+      id: user.id,
+      avatar: user.avatar,
+      username: user.username,
+    });
     res.status(200).json({
       message: "Login successful",
       user: {
@@ -69,7 +84,7 @@ authRouter.post("/login", async (req: Request, res: Response) => {
 authRouter.get("/me", authMiddleware, async (req: Request, res: Response) => {
   try {
     const user = await prisma.user.findUnique({
-      where: { id: req.user?.userId },
+      where: { id: req.user?.id },
     });
     if (!user) {
       res.status(401).json({ message: "Unauthorized" });
