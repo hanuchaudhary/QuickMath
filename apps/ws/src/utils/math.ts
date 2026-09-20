@@ -2,8 +2,8 @@ import type { GameDifficulty } from "@matix/common";
 
 export type Difficulty = GameDifficulty;
 
-interface Question {
-  id: number;
+export interface Question {
+  id: number; // idx
   question: string;
   answer: number;
   difficulty: Difficulty;

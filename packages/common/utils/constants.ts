@@ -22,10 +22,10 @@ export const DEFAULT_GAME_CONFIG_BY_TYPE: Record<GameType, GameConfig> = {
     timeLimit: 120, 
   },
   [GameType.FASTEST_FINGER_FIRST]: {
-    maxPlayersCount: 3,
+    maxPlayersCount: 2,
     questionsCount: 100,
     difficulty: "medium",
-    timeLimit: 60,
+    timeLimit: 120,
   },
 };
 

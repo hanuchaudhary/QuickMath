@@ -1,6 +1,6 @@
 import { WebSocketServer } from "ws";
 import type { GameRoom, User } from "./utils/types";
-import { verifyToken } from "./utils/lib";
+import { generateScore, verifyToken } from "./utils/lib";
 import { DEFAULT_GAME_CONFIG_BY_TYPE, isGameType } from "@matix/common";
 import { generateQuiz } from "./utils/math";
 
@@ -43,6 +43,15 @@ function finishGame(room: GameRoom) {
     type: "GAME_FINISHED",
     data: {
       roomId: room.id,
+      stats: room.players.map((playerId) => {
+        const playerState = playerStates.get(room.id)?.get(playerId);
+        return {
+          userId: playerId,
+          score: playerState?.score ?? 0,
+          totalAnsweredQuestions: playerState?.answerQuestionIds.length ?? 0,
+          // winner decide
+        };
+      }),
     },
   });
 }
@@ -197,6 +206,12 @@ wss.on("connection", (ws, req) => {
               );
 
               gameRoom.questions = questions;
+              gameRoom.currentQuestion = {
+                id: questions[0]!.id,
+                index: 0,
+                answeredBy: null,
+                startedAt: new Date(),
+              };
               gameRoom.startedAt = Date.now();
               gameRoom.endedAt =
                 gameRoom.startedAt + gameConfig.timeLimit * 1000;
@@ -301,13 +316,6 @@ wss.on("connection", (ws, req) => {
           return;
         }
 
-        if (userRoom.questionIndex !== questionId) {
-          ws.send(
-            JSON.stringify({ type: "ERROR", payload: "Question not found" }),
-          );
-          return;
-        }
-
         const question = gameRoom.questions[questionId];
         if (!question) {
           ws.send(
@@ -316,7 +324,29 @@ wss.on("connection", (ws, req) => {
           return;
         }
 
-        if (answer === question.answer) {
+        const playerStats = () =>
+          gameRoom.players.map((playerId) => {
+            const playerState = playerStates.get(gameRoom.id)?.get(playerId);
+            return {
+              userId: playerId,
+              score: playerState?.score ?? 0,
+              totalAnsweredQuestions:
+                playerState?.answerQuestionIds.length ?? 0,
+            };
+          });
+
+        if (gameRoom.gameType === "DUELS") {
+          if (userRoom.questionIndex !== questionId) {
+            ws.send(
+              JSON.stringify({ type: "ERROR", payload: "Question not found" }),
+            );
+            return;
+          }
+
+          if (answer !== question.answer) {
+            return;
+          }
+
           userRoom.score++;
           userRoom.answerQuestionIds.push(questionId);
           userRoom.questionIndex++;
@@ -331,7 +361,75 @@ wss.on("connection", (ws, req) => {
               }),
             );
           }
+
+          broadcastToRoom(gameRoom, {
+            type: "USER_STATS",
+            data: playerStats(),
+          });
+          return;
         }
+
+        const currentQuestion = gameRoom.currentQuestion;
+        if (!currentQuestion || currentQuestion.id !== questionId) {
+          ws.send(
+            JSON.stringify({
+              type: "ERROR",
+              payload: "Question not found",
+            }),
+          );
+          return;
+        }
+
+        if (currentQuestion.answeredBy !== null) {
+          ws.send(
+            JSON.stringify({
+              type: "ERROR",
+              payload: "Question already answered",
+            }),
+          );
+          return;
+        }
+
+        if (answer !== question.answer) {
+          return;
+        }
+
+        currentQuestion.answeredBy = user.id;
+        const timeTaken = Math.max(
+          Date.now() - currentQuestion.startedAt.getTime(),
+          1,
+        );
+        userRoom.score += generateScore(timeTaken);
+        userRoom.answerQuestionIds.push(currentQuestion.id);
+
+        const nextIndex = currentQuestion.index + 1;
+        for (const playerState of roomStates.values()) {
+          playerState.questionIndex = nextIndex;
+        }
+
+        const nextQuestion = gameRoom.questions[nextIndex];
+        if (nextQuestion) {
+          gameRoom.currentQuestion = {
+            id: nextQuestion.id,
+            index: nextIndex,
+            answeredBy: null,
+            startedAt: new Date(),
+          };
+
+          broadcastToRoom(gameRoom, {
+            type: "QUESTIONS",
+            data: {
+              question: nextQuestion,
+            },
+          });
+        } else {
+          finishGame(gameRoom);
+        }
+
+        broadcastToRoom(gameRoom, {
+          type: "USER_STATS",
+          data: playerStats(),
+        });
 
         break;
       case "LEAVE_GAME":
