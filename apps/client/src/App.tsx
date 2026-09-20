@@ -1,122 +1,113 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useEffect } from "react";
+import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import { AppShell } from "@/components/app-shell";
+import { useGameSocket } from "@/hooks/useGameSocket";
+import { getToken } from "@/lib/http";
+import { AuthPage } from "@/pages/auth";
+import { ArenaPage } from "@/pages/arena";
+import { MatchmakingPage } from "@/pages/matchmaking";
+import { PlaygroundPage } from "@/pages/playground";
+import { ProfilePage } from "@/pages/profile";
+import { ResultsPage } from "@/pages/results";
+import { useAuthStore } from "@/stores/auth.store";
+import { useGameStore } from "@/stores/game.store";
 
-function App() {
-  const [count, setCount] = useState(0)
+function Protected({ children }: { children: React.ReactNode }) {
+  const user = useAuthStore((s) => s.user);
+  const loading = useAuthStore((s) => s.loading);
+  useGameSocket(Boolean(user));
 
+  if (loading) {
+    return <div className="grid min-h-dvh place-items-center text-white/40">Loading...</div>;
+  }
+  if (!user) return <Navigate to="/auth" replace />;
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+    <AppShell>
+      <MatchNavigator />
+      {children}
+    </AppShell>
+  );
 }
 
-export default App
+function MatchNavigator() {
+  const room = useGameStore((s) => s.room);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (!room) return;
+    if (room.status === "PLAYING") {
+      const path = `/play/${room.gameType}/${room.id}`;
+      if (!location.pathname.startsWith(path)) navigate(path, { replace: true });
+    }
+    if (room.status === "FINISHED") {
+      const path = `/play/${room.gameType}/${room.id}/results`;
+      if (location.pathname !== path) navigate(path, { replace: true });
+    }
+  }, [location.pathname, navigate, room]);
+
+  return null;
+}
+
+function Boot() {
+  const loadMe = useAuthStore((s) => s.loadMe);
+  useEffect(() => {
+    if (!getToken()) {
+      useAuthStore.setState({ loading: false });
+      return;
+    }
+    void loadMe();
+  }, [loadMe]);
+  return null;
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Boot />
+      <Routes>
+        <Route path="/auth" element={<AuthPage />} />
+        <Route
+          path="/"
+          element={
+            <Protected>
+              <ArenaPage />
+            </Protected>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <Protected>
+              <ProfilePage />
+            </Protected>
+          }
+        />
+        <Route
+          path="/play/:gameType"
+          element={
+            <Protected>
+              <MatchmakingPage />
+            </Protected>
+          }
+        />
+        <Route
+          path="/play/:gameType/:roomId"
+          element={
+            <Protected>
+              <PlaygroundPage />
+            </Protected>
+          }
+        />
+        <Route
+          path="/play/:gameType/:roomId/results"
+          element={
+            <Protected>
+              <ResultsPage />
+            </Protected>
+          }
+        />
+      </Routes>
+    </BrowserRouter>
+  );
+}

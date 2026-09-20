@@ -39,3 +39,6 @@ yarn-error.log*
 
 # Postgres data
 postgres_data
+
+# Redis data
+redis_data

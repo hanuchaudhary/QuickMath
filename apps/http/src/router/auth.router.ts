@@ -1,11 +1,29 @@
 import { Router, type Request, type Response } from "express";
 import { prisma } from "@matix/db";
 import { loginSchema, registerSchema } from "@matix/common";
-import { comparePassword, generateToken, hashPassword } from "../utils/auth";
+import {
+  blacklistToken,
+  comparePassword,
+  generateToken,
+  hashPassword,
+} from "../utils/auth";
 import { authMiddleware } from "../utils/middleware";
-import { getRandomUsername } from "../utils/lib";
 
 export const authRouter = Router();
+
+function publicUser(user: {
+  id: string;
+  username: string;
+  email: string;
+  avatar: string;
+}) {
+  return {
+    id: user.id,
+    username: user.username,
+    email: user.email,
+    avatar: user.avatar,
+  };
+}
 
 authRouter.post("/register", async (req: Request, res: Response) => {
   try {
@@ -17,8 +35,13 @@ authRouter.post("/register", async (req: Request, res: Response) => {
 
     const { email, password } = data;
     const hashedPassword = await hashPassword(password);
+    const username = email.split("@")[0] ?? "";
 
-    const username = email.split("@")[0] || getRandomUsername() || "";
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+    if (existingUser) {
+      res.status(409).json({ message: "Email already in use" });
+      return;
+    }
 
     const user = await prisma.user.create({
       data: {
@@ -29,14 +52,16 @@ authRouter.post("/register", async (req: Request, res: Response) => {
       },
     });
 
+    const token = generateToken({
+      id: user.id,
+      avatar: user.avatar,
+      username: user.username,
+    });
+
     res.status(201).json({
       message: "User created successfully",
-      user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        avatar: user.avatar,
-      },
+      user: publicUser(user),
+      token,
     });
   } catch (error) {
     res.status(500).json({ message: "Internal server error" });
@@ -68,18 +93,32 @@ authRouter.post("/signin", async (req: Request, res: Response) => {
     });
     res.status(200).json({
       message: "Login successful",
-      user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        avatar: user.avatar,
-      },
+      user: publicUser(user),
       token,
     });
-  } catch (error) {
+  } catch {
     res.status(500).json({ message: "Internal server error" });
   }
 });
+
+authRouter.post(
+  "/logout",
+  authMiddleware,
+  async (req: Request, res: Response) => {
+    try {
+      const token = req.headers.authorization?.split(" ")[1];
+      if (!token) {
+        res.status(401).json({ message: "Unauthorized" });
+        return;
+      }
+
+      await blacklistToken(token);
+      res.status(200).json({ message: "Logout successful" });
+    } catch {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  },
+);
 
 authRouter.get("/me", authMiddleware, async (req: Request, res: Response) => {
   try {
@@ -92,14 +131,9 @@ authRouter.get("/me", authMiddleware, async (req: Request, res: Response) => {
     }
     res.status(200).json({
       message: "User found",
-      user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        avatar: user.avatar,
-      },
+      user: publicUser(user),
     });
-  } catch (error) {
+  } catch {
     res.status(500).json({ message: "Internal server error" });
   }
 });

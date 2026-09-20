@@ -12,13 +12,108 @@ datasource db {
   provider = "postgresql"
 }
 
+enum GameType {
+  DUELS
+  FASTEST_FINGER_FIRST
+}
+
+enum GameStatus {
+  WAITING
+  PLAYING
+  FINISHED
+  CANCELLED
+}
+
 model User {
-  id        String   @id @default(uuid())
-  username  String   @unique
-  email     String   @unique
-  password  String
-  avatar    String
-  
-  updatedAt DateTime @updatedAt
+  id       String @id @default(uuid())
+  username String @unique
+  email    String @unique
+  password String
+  avatar   String
+
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  gamePlayers GamePlayer[]
+}
+
+model Game {
+  id     String     @id @default(cuid())
+  type   GameType
+  status GameStatus @default(WAITING)
+
+  startedAt DateTime?
+  endedAt   DateTime?
+
+  timeLimit Int
+
+  players   GamePlayer[]
+  questions GameQuestion[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([type, status])
+}
+
+model GamePlayer {
+  id String @id @default(cuid())
+
+  gameId String
+  userId String
+
+  score Int @default(0)
+
+  questionsAnswered Int @default(0)
+
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  answers GameAnswer[]
+
+  joinedAt DateTime @default(now())
+
+  @@unique([gameId, userId])
+  @@index([gameId])
+  @@index([userId])
+}
+
+model GameQuestion {
+  id Int @id @default(autoincrement())
+
+  gameId String
+  index  Int
+
+  question String
+  answer   Int
+
+  difficulty String
+
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  answers GameAnswer[]
+
+  @@unique([gameId, index])
+  @@index([gameId])
+}
+
+model GameAnswer {
+  id String @id @default(cuid())
+
+  gameId         String
+  gamePlayerId   String
+  gameQuestionId Int
+
+  answer      Int
+  isCorrect   Boolean
+  timeTakenMs Int
+  answeredAt  DateTime @default(now())
+
+  gamePlayer   GamePlayer   @relation(fields: [gamePlayerId], references: [id], onDelete: Cascade)
+  gameQuestion GameQuestion @relation(fields: [gameQuestionId], references: [id], onDelete: Cascade)
+
+  @@index([gameId])
+  @@index([gamePlayerId])
+  @@index([gameQuestionId])
 }
