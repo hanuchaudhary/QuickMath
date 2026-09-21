@@ -7,6 +7,8 @@ export const WsEvent = {
   OnlineUsers: "ONLINE_USERS",
   GameCreated: "GAME_CREATED",
   UserJoinedGameRoom: "USER_JOINED_GAME_ROOM",
+  GameReady: "GAME_READY",
+  GameClose: "GAME_CLOSE",
   GameStarting: "GAME_STARTING",
   Questions: "QUESTIONS",
   UserStats: "USER_STATS",
@@ -59,6 +61,8 @@ type RoomPayload = {
   gameConfig: GameConfig;
   players: PublicUser[];
   status: RoomSnapshot["status"];
+  startedAt?: number;
+  endedAt?: number;
 };
 
 type RawQuestion = {
@@ -79,6 +83,8 @@ export type ServerMessage =
   | { type: typeof WsEvent.OnlineUsers; data: PublicUser[] }
   | { type: typeof WsEvent.GameCreated; data: RoomPayload }
   | { type: typeof WsEvent.UserJoinedGameRoom; data: RoomPayload }
+  | { type: typeof WsEvent.GameReady; data: RoomPayload }
+  | { type: typeof WsEvent.GameClose; data: RoomPayload & { userId: string } }
   | { type: typeof WsEvent.GameStarting; data: RoomPayload }
   | { type: typeof WsEvent.Questions; data: { question: RawQuestion } }
   | { type: typeof WsEvent.UserStats; data: RawStat[] }

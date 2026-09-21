@@ -5,6 +5,7 @@ import { useGameSocket } from "@/hooks/useGameSocket";
 import { getToken } from "@/lib/http";
 import { AuthPage } from "@/pages/auth";
 import { ArenaPage } from "@/pages/arena";
+import { LandingPage } from "@/pages/landing";
 import { MatchmakingPage } from "@/pages/matchmaking";
 import { PlaygroundPage } from "@/pages/playground";
 import { ProfilePage } from "@/pages/profile";
@@ -66,9 +67,10 @@ export default function App() {
     <BrowserRouter>
       <Boot />
       <Routes>
+        <Route path="/" element={<LandingPage />} />
         <Route path="/auth" element={<AuthPage />} />
         <Route
-          path="/"
+          path="/arena"
           element={
             <Protected>
               <ArenaPage />

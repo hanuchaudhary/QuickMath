@@ -19,7 +19,7 @@ export function MatchmakingPage() {
 
   useEffect(() => {
     if (!isGameType(gameType)) {
-      navigate("/", { replace: true });
+      navigate("/arena", { replace: true });
       return;
     }
     if (!connected) return;
@@ -48,15 +48,15 @@ export function MatchmakingPage() {
   return (
     <div className="grid min-h-dvh place-items-center px-6">
       <div className="w-full max-w-lg rounded-[32px] bg-panel p-10 text-center">
-        <p className="text-xs font-bold tracking-[0.2em] text-lime">MATH DUEL</p>
-        <h1 className="mt-3 font-display text-4xl font-semibold">{title}</h1>
+        <p className="text-sm font-medium text-blue-400">MATH DUEL</p>
+        <h1 className="mt-3 font-display text-6xl font-bold tracking-tighter">{title}</h1>
         <p className="mt-2 text-sm text-white/40">
           {room?.status === "STARTING"
             ? "Matched. Get ready."
-            : "Waiting for an opponent..."}
+            : `Waiting for players ${room ? `(${room.players.length}/${room.gameConfig.maxPlayersCount})` : ""}`}
         </p>
         {countdown !== null ? (
-          <p className="mt-6 font-display text-7xl font-semibold tabular-nums text-lime">
+          <p className="mt-6 font-display text-7xl font-semibold tabular-nums text-blue-400">
             {countdown === 0 ? "GO" : countdown}
           </p>
         ) : null}
@@ -79,7 +79,7 @@ export function MatchmakingPage() {
                 ))
             ) : (
               <div className="grid size-14 place-items-center rounded-full border border-dashed border-white/20">
-                <span className="match-pulse size-3 rounded-full bg-lime" />
+                <span className="match-pulse size-3 rounded-full bg-blue-400" />
               </div>
             )}
           </div>
@@ -90,7 +90,7 @@ export function MatchmakingPage() {
           className="mt-10 rounded-2xl bg-white/8 px-5 py-2 text-sm"
           onClick={() => {
             leaveQueue();
-            navigate("/");
+            navigate("/arena");
           }}
         >
           Cancel

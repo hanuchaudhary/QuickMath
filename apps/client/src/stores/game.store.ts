@@ -45,10 +45,19 @@ function applyMessage(set: (partial: Partial<GameState>) => void, get: () => Gam
       break;
     case WsEvent.GameCreated:
     case WsEvent.UserJoinedGameRoom:
+    case WsEvent.GameReady:
       set({
         room: applyRoom(message.data),
         winnerId: null,
         error: null,
+      });
+      break;
+    case WsEvent.GameClose:
+      set({
+        room: applyRoom(message.data),
+        winnerId: null,
+        error: null,
+        question: null,
       });
       break;
     case WsEvent.GameStarting: {
@@ -147,7 +156,10 @@ export const useGameStore = create<GameState>((set, get) => ({
     );
   },
   leaveQueue: () => {
-    get().socket?.send(JSON.stringify({ type: WsEvent.LeaveGame }));
+    const roomId = get().room?.id;
+    get().socket?.send(
+      JSON.stringify({ type: WsEvent.LeaveGame, payload: { roomId } }),
+    );
     set({ room: null, question: null, stats: [], winnerId: null });
   },
   answer: (value) => {

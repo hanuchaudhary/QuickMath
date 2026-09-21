@@ -1,15 +1,14 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/outfit";
 @import "@fontsource/ibm-plex-mono";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
     --font-heading: var(--font-display);
-    --font-display: "Outfit Variable", sans-serif;
-    --font-sans: "Outfit Variable", sans-serif;
+    --font-display: "Bebas Neue", sans-serif;
+    --font-sans: "Roboto", sans-serif;
     --font-mono: "IBM Plex Mono", ui-monospace, monospace;
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
@@ -85,15 +84,20 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply bg-background font-sans text-foreground antialiased;
   }
   html {
     @apply font-sans;
+  }
+  h1, h2, h3 {
+    font-family: var(--font-display);
+    letter-spacing: 0.04em;
   }
 }
 
 .font-display {
   font-family: var(--font-display);
+  letter-spacing: 0.04em;
 }
 
 .play-grid {
@@ -140,8 +144,40 @@
   animation: pop-in 500ms ease both;
 }
 
+@keyframes hero-rise {
+  from { opacity: 0; transform: translateY(28px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.hero-rise {
+  animation: hero-rise 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes float-glyph {
+  0%, 100% { transform: translateY(0) rotate(-6deg); }
+  50% { transform: translateY(-18px) rotate(6deg); }
+}
+.float-glyph {
+  animation: float-glyph 5s ease-in-out infinite;
+}
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.marquee-track {
+  animation: marquee 22s linear infinite;
+}
+
+@keyframes card-in {
+  from { opacity: 0; transform: translateY(32px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.card-in {
+  animation: card-in 640ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .shake, .pop-in, .match-pulse, .stagger > * {
+  .shake, .pop-in, .match-pulse, .stagger > *, .hero-rise, .float-glyph, .marquee-track, .card-in {
     animation: none;
   }
 }

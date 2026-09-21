@@ -32,6 +32,50 @@ function broadcastToRoom(room: GameRoom, message: unknown) {
   }
 }
 
+function roomData(room: GameRoom) {
+  return {
+    id: room.id,
+    gameType: room.gameType,
+    gameConfig: room.gameConfig,
+    players: room.players
+      .map((p) => onlineUsers.get(p))
+      .filter(Boolean)
+      .map((p) => ({
+        id: p!.id,
+        username: p!.username,
+        avatar: p!.avatar,
+      })),
+    status: room.status,
+  };
+}
+
+function handleClose(user: User) {
+  const room = Array.from(gameRooms.values()).find((gameRoom) =>
+    gameRoom.players.includes(user.id),
+  );
+  if (!room || room.status === "PLAYING" || room.status === "FINISHED") {
+    return;
+  }
+
+  room.players = room.players.filter((id) => id !== user.id);
+  playerStates.get(room.id)?.delete(user.id);
+  room.status = "WAITING";
+
+  if (room.players.length === 0) {
+    gameRooms.delete(room.id);
+    playerStates.delete(room.id);
+    return;
+  }
+
+  broadcastToRoom(room, {
+    type: "GAME_CLOSE",
+    data: {
+      ...roomData(room),
+      userId: user.id,
+    },
+  });
+}
+
 function finishGame(room: GameRoom) {
   if (room.status !== "PLAYING") {
     return;
@@ -179,6 +223,24 @@ wss.on("connection", (ws, req) => {
                 });
               }
             }
+
+            broadcastToRoom(gameRoom, {
+              type: "GAME_READY",
+              data: {
+                id: gameRoom.id,
+                gameType: gameRoom.gameType,
+                gameConfig: gameRoom.gameConfig,
+                players: gameRoom.players
+                  .map((p) => onlineUsers.get(p))
+                  .filter(Boolean)
+                  .map((p) => ({
+                    id: p!.id,
+                    username: p!.username,
+                    avatar: p!.avatar,
+                  })),
+                status: roomStatus,
+              },
+            });
 
             setTimeout(() => {
               gameRoom.status = "PLAYING";
@@ -433,8 +495,14 @@ wss.on("connection", (ws, req) => {
 
         break;
       case "LEAVE_GAME":
+        handleClose(user);
         break;
     }
+  });
+
+  ws.on("close", () => {
+    handleClose(user);
+    onlineUsers.delete(user.id);
   });
 });
 

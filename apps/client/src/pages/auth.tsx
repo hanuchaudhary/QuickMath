@@ -15,7 +15,7 @@ export function AuthPage() {
   const [pending, setPending] = useState(false);
 
   useEffect(() => {
-    if (user) navigate("/", { replace: true });
+    if (user) navigate("/arena", { replace: true });
   }, [user, navigate]);
 
   async function onSubmit(event: React.FormEvent) {
@@ -25,7 +25,7 @@ export function AuthPage() {
     try {
       if (mode === "signin") await login(email, password);
       else await register(email, password);
-      navigate("/", { replace: true });
+      navigate("/arena", { replace: true });
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Something went wrong");
     } finally {
@@ -39,7 +39,7 @@ export function AuthPage() {
         onSubmit={onSubmit}
         className="w-full max-w-md rounded-[28px] border border-white/8 bg-panel p-8 shadow-[0_0_80px_rgba(182,255,59,0.08)]"
       >
-        <p className="font-display text-sm font-bold tracking-[0.24em] text-lime">MATIKS</p>
+        <p className="font-display text-sm font-bold tracking-[0.24em] text-blue-400">MATIKS</p>
         <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight">
           {mode === "signin" ? "Back in the arena" : "Create your handle"}
         </h1>
@@ -50,7 +50,7 @@ export function AuthPage() {
         <label className="mt-8 block text-xs font-semibold tracking-wide text-white/50 uppercase">
           Email
           <input
-            className="mt-2 h-12 w-full rounded-2xl border border-white/10 bg-black/40 px-4 text-sm outline-none focus:border-lime/60"
+            className="mt-2 h-12 w-full rounded-2xl border border-white/10 bg-black/40 px-4 text-sm outline-none focus:border-blue-400/60"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -60,7 +60,7 @@ export function AuthPage() {
         <label className="mt-4 block text-xs font-semibold tracking-wide text-white/50 uppercase">
           Password
           <input
-            className="mt-2 h-12 w-full rounded-2xl border border-white/10 bg-black/40 px-4 text-sm outline-none focus:border-lime/60"
+            className="mt-2 h-12 w-full rounded-2xl border border-white/10 bg-black/40 px-4 text-sm outline-none focus:border-blue-400/60"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -72,7 +72,7 @@ export function AuthPage() {
         {error ? <p className="mt-4 text-sm text-red-400">{error}</p> : null}
 
         <button
-          className="mt-6 h-12 w-full rounded-2xl bg-lime text-sm font-bold text-black press-feedback"
+          className="mt-6 h-12 w-full rounded-2xl bg-blue-400 text-sm font-bold text-black press-feedback"
           disabled={pending}
           type="submit"
         >

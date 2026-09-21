@@ -18,11 +18,11 @@ export function ResultsPage() {
   return (
     <div className="grid min-h-dvh place-items-center px-6">
       <div className="w-full max-w-lg rounded-[32px] bg-panel p-10 text-center">
-        <p className="text-xs font-bold tracking-[0.2em] text-lime">MATCH OVER</p>
-        <h1 className="mt-3 font-display text-5xl font-semibold">
+        <p className="text-xs font-medium text-blue-400">MATCH OVER</p>
+        <h1 className="mt-3 font-display text-6xl font-bold tracking-tighter">
           {tied ? "Draw" : won ? "You win" : "Defeat"}
         </h1>
-        <p className="mt-2 text-sm text-white/40">Room {roomId?.slice(0, 8)}</p>
+        <p className="mt-2 text-sm text-muted-foreground">Room {roomId?.slice(0, 8)}</p>
 
         <div className="mt-8 space-y-3">
           {room?.players.map((player) => {
@@ -30,13 +30,13 @@ export function ResultsPage() {
             return (
               <div
                 key={player.id}
-                className="flex items-center justify-between rounded-2xl bg-black/30 px-4 py-3"
+                className="flex items-center justify-between rounded-full bg-black/30 pl-3 pr-6 py-3"
               >
                 <div className="flex items-center gap-3">
                   <UserAvatar name={player.username} src={player.avatar || undefined} />
                   <span>{player.username}</span>
                 </div>
-                <span className="font-mono text-xl tabular-nums text-lime">{score}</span>
+                <span className="font-mono text-xl tabular-nums text-blue-400">{score}</span>
               </div>
             );
           })}
@@ -44,10 +44,10 @@ export function ResultsPage() {
 
         <button
           type="button"
-          className="mt-8 w-full rounded-2xl bg-lime py-3 text-sm font-bold text-black"
+          className="mt-8 w-full rounded-full bg-blue-400 py-5 font-medium text-black"
           onClick={() => {
             resetMatch();
-            navigate("/");
+            navigate("/arena");
           }}
         >
           Back to arena

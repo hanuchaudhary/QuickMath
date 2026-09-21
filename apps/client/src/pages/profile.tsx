@@ -52,7 +52,7 @@ export function ProfilePage() {
         <label className="block text-xs font-semibold tracking-wide text-white/40 uppercase">
           Username
           <input
-            className="mt-2 h-11 w-full rounded-2xl border border-white/10 bg-black/30 px-4 text-sm outline-none focus:border-lime/50"
+            className="mt-2 h-11 w-full rounded-2xl border border-white/10 bg-black/30 px-4 text-sm outline-none focus:border-blue-400/50"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
           />
@@ -60,13 +60,13 @@ export function ProfilePage() {
         <label className="mt-4 block text-xs font-semibold tracking-wide text-white/40 uppercase">
           Avatar URL
           <input
-            className="mt-2 h-11 w-full rounded-2xl border border-white/10 bg-black/30 px-4 text-sm outline-none focus:border-lime/50"
+            className="mt-2 h-11 w-full rounded-2xl border border-white/10 bg-black/30 px-4 text-sm outline-none focus:border-blue-400/50"
             value={avatar}
             onChange={(e) => setAvatar(e.target.value)}
           />
         </label>
         <div className="mt-5 flex gap-3">
-          <button className="rounded-2xl bg-lime px-5 py-2 text-sm font-bold text-black" type="submit">
+          <button className="rounded-2xl bg-blue-400 px-5 py-2 text-sm font-bold text-black" type="submit">
             Save
           </button>
           <button
@@ -92,7 +92,7 @@ export function ProfilePage() {
                 vs {game.opponents.map((o) => o.username).join(", ") || "—"}
               </p>
             </div>
-            <p className="font-mono tabular-nums text-lime">{game.score}</p>
+            <p className="font-mono tabular-nums text-blue-400">{game.score}</p>
           </div>
         ))}
         {games.length === 0 ? (

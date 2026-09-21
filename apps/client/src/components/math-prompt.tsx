@@ -1,21 +1,33 @@
 import { parseStackedPrompt } from "@/lib/math-prompt";
+import { cn } from "@/lib/utils";
 
-export function MathPrompt({ prompt }: { prompt: string }) {
+export function MathPrompt({
+  prompt,
+  className,
+}: {
+  prompt: string;
+  className?: string;
+}) {
   const stacked = parseStackedPrompt(prompt);
 
   if (!stacked) {
     return (
-      <p className="font-display text-5xl font-semibold tracking-tight text-white">
+      <p className={cn("font-display text-5xl font-semibold tracking-tight text-white", className)}>
         {prompt}
       </p>
     );
   }
 
   return (
-    <div className="flex items-center justify-center gap-4 font-display text-5xl font-medium tracking-tight text-white sm:text-6xl">
+    <div
+      className={cn(
+        "inline-flex flex-col items-end font-display text-6xl leading-none tracking-tight text-white sm:text-7xl",
+        className,
+      )}
+    >
       <span className="tabular-nums">{stacked.top}</span>
-      <span className="flex flex-col items-start leading-none">
-        <span className="text-[0.55em] text-white/70">{stacked.operator}</span>
+      <span className="mt-2 flex items-baseline gap-3">
+        <span className="text-7xl text-white/80">{stacked.operator}</span>
         <span className="tabular-nums">{stacked.bottom}</span>
       </span>
     </div>

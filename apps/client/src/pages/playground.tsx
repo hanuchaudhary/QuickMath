@@ -58,7 +58,7 @@ export function PlaygroundPage() {
   if (!room || room.id !== roomId) {
     return (
       <div className="grid min-h-dvh place-items-center text-white/40">
-        <button type="button" onClick={() => navigate("/")}>
+        <button type="button" onClick={() => navigate("/arena")}>
           Return to arena
         </button>
       </div>
@@ -73,6 +73,7 @@ export function PlaygroundPage() {
           avatar={me?.avatar}
           score={myScore}
           align="left"
+          isMe={me?.id === user?.id}
         />
         <div className="rounded-full bg-[#123] px-4 py-1 font-mono text-lg tabular-nums text-cyan shadow-[0_0_24px_rgba(34,211,238,0.35)]">
           {minutes}:{seconds}
@@ -82,6 +83,7 @@ export function PlaygroundPage() {
           avatar={opponent?.avatar}
           score={theirScore}
           align="right"
+          isMe={false}
         />
       </div>
 
@@ -93,8 +95,8 @@ export function PlaygroundPage() {
       </div>
 
       <div className="mt-auto mb-16 w-full max-w-md text-center">
-        <p className="mb-3 text-[10px] font-semibold tracking-[0.22em] text-white/35">
-          TYPE OUT YOUR ANSWER
+        <p className="mb-3 text-sm font-medium text-muted-foreground">
+          TYPE YOUR ANSWER
         </p>
         <input
           autoFocus
@@ -120,15 +122,19 @@ function PlayerHud({
   avatar,
   score,
   align,
+  isMe,
 }: {
   name: string;
   avatar?: string;
   score: number;
   align: "left" | "right";
+  isMe: boolean;
 }) {
   return (
     <div className={cn("flex items-center gap-3", align === "right" && "flex-row-reverse")}>
-      <UserAvatar name={name} src={avatar || undefined} />
+      <div className={cn("ring-4 rounded-3xl p-2", isMe ? "ring-blue-400" : "ring-white/10")}>
+        <UserAvatar name={name} src={avatar || undefined} />
+      </div>
       <div className={cn(align === "right" && "text-right")}>
         <p className="max-w-[90px] truncate text-sm font-semibold">{name}</p>
         <div className="mt-1 inline-flex rounded-full bg-white/10 px-2 py-0.5 font-mono text-xs tabular-nums">
