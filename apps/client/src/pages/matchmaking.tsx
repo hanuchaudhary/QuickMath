@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { GameType, isGameType } from "@matix/common";
+import { gameTitle, isGameType, resolveGameMode } from "@matix/common";
 import { UserAvatar } from "@/components/user-avatar";
 import { useAuthStore } from "@/stores/auth.store";
 import { useGameStore } from "@/stores/game.store";
 
 export function MatchmakingPage() {
-  const { gameType } = useParams();
+  const { gameType, gameMode } = useParams();
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
   const room = useGameStore((s) => s.room);
@@ -16,17 +16,19 @@ export function MatchmakingPage() {
   const [countdown, setCountdown] = useState<number | null>(null);
 
   const joinedFor = useRef<string | null>(null);
+  const resolvedMode = isGameType(gameType) ? resolveGameMode(gameType, gameMode) : null;
 
   useEffect(() => {
-    if (!isGameType(gameType)) {
+    if (!isGameType(gameType) || !resolvedMode) {
       navigate("/arena", { replace: true });
       return;
     }
     if (!connected) return;
-    if (joinedFor.current === gameType) return;
-    joinedFor.current = gameType;
-    joinQueue(gameType);
-  }, [connected, gameType, joinQueue, navigate]);
+    const key = `${gameType}:${resolvedMode}`;
+    if (joinedFor.current === key) return;
+    joinedFor.current = key;
+    joinQueue(gameType, resolvedMode);
+  }, [connected, gameType, joinQueue, navigate, resolvedMode]);
 
   useEffect(() => {
     if (room?.status !== "STARTING") {
@@ -43,12 +45,14 @@ export function MatchmakingPage() {
   }, [room?.id, room?.status]);
 
   const title =
-    gameType === GameType.FASTEST_FINGER_FIRST ? "Fastest Fingers" : "Sprint Duels";
+    isGameType(gameType) && resolvedMode
+      ? gameTitle(gameType, resolvedMode)
+      : "Duel";
 
   return (
     <div className="grid min-h-dvh place-items-center px-6">
       <div className="w-full max-w-lg rounded-[32px] bg-panel p-10 text-center">
-        <p className="text-sm font-medium text-blue-400">MATH DUEL</p>
+        <p className="text-sm font-medium text-blue-400">{gameType ?? "GAME"}</p>
         <h1 className="mt-3 font-display text-6xl font-bold tracking-tighter">{title}</h1>
         <p className="mt-2 text-sm text-white/40">
           {room?.status === "STARTING"

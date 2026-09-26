@@ -38,11 +38,11 @@ function MatchNavigator() {
   useEffect(() => {
     if (!room) return;
     if (room.status === "PLAYING") {
-      const path = `/play/${room.gameType}/${room.id}`;
+      const path = `/play/${room.gameType}/${room.gameMode}/${room.id}`;
       if (!location.pathname.startsWith(path)) navigate(path, { replace: true });
     }
     if (room.status === "FINISHED") {
-      const path = `/play/${room.gameType}/${room.id}/results`;
+      const path = `/play/${room.gameType}/${room.gameMode}/${room.id}/results`;
       if (location.pathname !== path) navigate(path, { replace: true });
     }
   }, [location.pathname, navigate, room]);
@@ -86,7 +86,7 @@ export default function App() {
           }
         />
         <Route
-          path="/play/:gameType"
+          path="/play/:gameType/:gameMode"
           element={
             <Protected>
               <MatchmakingPage />
@@ -94,7 +94,7 @@ export default function App() {
           }
         />
         <Route
-          path="/play/:gameType/:roomId"
+          path="/play/:gameType/:gameMode/:roomId"
           element={
             <Protected>
               <PlaygroundPage />
@@ -102,7 +102,7 @@ export default function App() {
           }
         />
         <Route
-          path="/play/:gameType/:roomId/results"
+          path="/play/:gameType/:gameMode/:roomId/results"
           element={
             <Protected>
               <ResultsPage />

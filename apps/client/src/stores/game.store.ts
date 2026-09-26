@@ -6,6 +6,7 @@ import {
   toPublicQuestion,
   winnerIdFromStats,
   type GameType as GameTypeName,
+  type GameMode,
   type PlayerStat,
   type PublicQuestion,
   type PublicUser,
@@ -27,7 +28,7 @@ type GameState = {
   lastShakeAt: number;
   connect: (token: string) => void;
   disconnect: () => void;
-  joinQueue: (gameType: GameTypeName) => void;
+  joinQueue: (gameType: GameTypeName, gameMode?: GameMode) => void;
   leaveQueue: () => void;
   answer: (value: number) => void;
   clearError: () => void;
@@ -150,9 +151,9 @@ export const useGameStore = create<GameState>((set, get) => ({
       winnerId: null,
     });
   },
-  joinQueue: (gameType) => {
+  joinQueue: (gameType, gameMode) => {
     get().socket?.send(
-      JSON.stringify({ type: WsEvent.PlayGame, payload: { gameType } }),
+      JSON.stringify({ type: WsEvent.PlayGame, payload: { gameType, gameMode } }),
     );
   },
   leaveQueue: () => {

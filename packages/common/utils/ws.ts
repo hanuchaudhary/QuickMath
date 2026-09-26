@@ -1,4 +1,4 @@
-import { GameType, type GameConfig } from "./constants";
+import { GameType, type GameConfig, type GameMode } from "./constants";
 
 export const WsEvent = {
   PlayGame: "PLAY_GAME",
@@ -40,6 +40,7 @@ export type PlayerStat = {
 export type RoomSnapshot = {
   id: string;
   gameType: GameType;
+  gameMode: GameMode;
   gameConfig: GameConfig;
   players: PublicUser[];
   status: "WAITING" | "STARTING" | "PLAYING" | "FINISHED";
@@ -48,7 +49,10 @@ export type RoomSnapshot = {
 };
 
 export type ClientMessage =
-  | { type: typeof WsEvent.PlayGame; payload: { gameType: GameType } }
+  | {
+      type: typeof WsEvent.PlayGame;
+      payload: { gameType: GameType; gameMode?: GameMode };
+    }
   | { type: typeof WsEvent.LeaveGame; payload?: { roomId?: string } }
   | {
       type: typeof WsEvent.AnswerQuestion;
@@ -58,6 +62,7 @@ export type ClientMessage =
 type RoomPayload = {
   id: string;
   gameType: GameType;
+  gameMode: GameMode;
   gameConfig: GameConfig;
   players: PublicUser[];
   status: RoomSnapshot["status"];

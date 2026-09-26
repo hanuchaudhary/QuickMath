@@ -1,16 +1,17 @@
+import { useState } from "react";
 import { ChevronRight, Flame, Gem, Play } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { GameType } from "@matix/common";
+import { GameMode, GameType, resolveGameMode } from "@matix/common";
 import { UserAvatar } from "@/components/user-avatar";
 import { useAuthStore } from "@/stores/auth.store";
 import { useGameStore } from "@/stores/game.store";
 import { cn } from "@/lib/utils";
 
 const CATEGORIES = [
-  { id: "math", label: "Math", live: true, rating: 992 },
-  { id: "memory", label: "Memory", live: false },
-  { id: "puzzle", label: "Puzzle", live: false },
-  { id: "logic", label: "Logic", live: false },
+  { id: GameType.MATHS, label: "Maths", live: true },
+  { id: GameType.MEMORY, label: "Memory", live: true },
+  { id: GameType.PUZZLE, label: "Puzzle", live: true },
+  { id: GameType.LOGIC, label: "Logic", live: true },
 ];
 
 export function ArenaPage() {
@@ -22,8 +23,13 @@ export function ArenaPage() {
     ? [{ id: user.id, username: "YOU", avatar: user.avatar }, ...others]
     : others;
 
-  function play(gameType: typeof GameType.DUELS | typeof GameType.FASTEST_FINGER_FIRST) {
-    navigate(`/play/${gameType}`);
+  const [selectedType, setSelectedType] = useState<typeof GameType[keyof typeof GameType]>(
+    GameType.MATHS,
+  );
+
+  function play(gameType: typeof selectedType, gameMode?: string) {
+    const mode = resolveGameMode(gameType, gameMode);
+    navigate(`/play/${gameType}/${mode}`);
   }
 
   return (
@@ -68,15 +74,17 @@ export function ArenaPage() {
         </section>
 
         <p className="mt-8 mb-3 px-2 text-xs font-medium text-muted-foreground">
-          DUELS
+          GAME TYPE
         </p>
-        <div className="gap-3 p-1 grid grid-cols-4">
+        <div className="grid grid-cols-4 gap-3 p-1">
           {CATEGORIES.map((category) => (
-            <div
+            <button
+              type="button"
               key={category.id}
+              onClick={() => setSelectedType(category.id)}
               className={cn(
-                "grid shrink-0 h-22 w-full place-items-center rounded-[22px] border text-center",
-                category.live
+                "grid h-22 w-full shrink-0 place-items-center rounded-[22px] border text-center",
+                selectedType === category.id
                   ? "border-4 border-background bg-yellow text-black ring-1 ring-yellow"
                   : "border-white/8 bg-panel text-white/35",
               )}
@@ -87,17 +95,18 @@ export function ArenaPage() {
                   {category.label}
                 </p>
               </div>
-            </div>
+            </button>
           ))}
         </div>
 
+        {selectedType === GameType.MATHS ? (
         <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
           <button
             type="button"
-            onClick={() => play(GameType.DUELS)}
+            onClick={() => play(GameType.MATHS, GameMode.DUEL)}
             className="group cursor-pointer rounded-3xl bg-panel p-5 text-left press-feedback transition-all duration-300 hover:ring-4 hover:ring-blue-400 sm:p-6"
           >
-            <p className="text-sm font-medium text-blue-400">MATH</p>
+            <p className="text-sm font-medium text-blue-400">MATHS</p>
             <h3 className="mt-6 font-display text-4xl font-bold tracking-tighter sm:mt-10 sm:text-5xl lg:text-5xl">
               SPRINT
               <br />
@@ -109,10 +118,10 @@ export function ArenaPage() {
           </button>
           <button
             type="button"
-            onClick={() => play(GameType.FASTEST_FINGER_FIRST)}
+            onClick={() => play(GameType.MATHS, GameMode.FASTEST_FINGER_FIRST)}
             className="cursor-pointer rounded-3xl bg-panel p-5 text-left press-feedback transition-all duration-300 hover:ring-4 hover:ring-blue-400 sm:p-6"
           >
-            <p className="text-sm font-medium text-blue-400">MATH</p>
+            <p className="text-sm font-medium text-blue-400">MATHS</p>
             <h3 className="mt-6 font-display text-4xl font-bold tracking-tighter sm:mt-10 sm:text-5xl lg:text-5xl">
               FASTEST FINGERS
               <br />
@@ -123,6 +132,23 @@ export function ArenaPage() {
             </p>
           </button>
         </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => play(selectedType)}
+            className="mt-5 w-full cursor-pointer rounded-3xl bg-panel p-5 text-left press-feedback transition-all duration-300 hover:ring-4 hover:ring-blue-400 sm:p-6"
+          >
+            <p className="text-sm font-medium text-blue-400">{selectedType}</p>
+            <h3 className="mt-6 font-display text-4xl font-bold tracking-tighter sm:mt-10 sm:text-5xl">
+              DEFAULT
+              <br />
+              MODE
+            </h3>
+            <p className="mt-4 text-sm text-muted-foreground sm:mt-6">
+              No extra modes yet. This queue uses the default game mode.
+            </p>
+          </button>
+        )}
 
         <div className="mt-8 flex items-center justify-between">
           <p className="text-sm font-medium text-muted-foreground">

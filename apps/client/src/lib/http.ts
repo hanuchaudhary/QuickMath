@@ -83,6 +83,7 @@ export const http = {
       games: {
         id: string;
         type: string;
+        mode: string;
         status: string;
         score: number;
         questionsAnswered: number;
@@ -95,6 +96,7 @@ export const http = {
       game: {
         id: string;
         type: string;
+        mode: string;
         status: string;
         score: number;
         opponents: { id: string; username: string; avatar: string; score: number }[];

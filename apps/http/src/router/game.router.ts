@@ -10,6 +10,7 @@ function serializeGame(
   game: {
     id: string;
     type: string;
+    mode?: string;
     status: string;
     startedAt: Date | null;
     endedAt: Date | null;
@@ -29,6 +30,7 @@ function serializeGame(
   return {
     id: game.id,
     type: game.type,
+    mode: "mode" in game ? game.mode : "DEFAULT",
     status: game.status,
     startedAt: game.startedAt,
     endedAt: game.endedAt,

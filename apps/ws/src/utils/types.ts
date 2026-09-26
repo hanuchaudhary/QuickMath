@@ -1,5 +1,5 @@
 import type WebSocket from "ws";
-import type { GameConfig, GameType } from "@matix/common";
+import type { GameConfig, GameMode, GameType } from "@matix/common";
 import type { Difficulty, Question } from "./math";
 
 export type User = {
@@ -12,6 +12,7 @@ export type User = {
 export type GameRoom = {
   id: string;
   gameType: GameType;
+  gameMode: GameMode;
   gameConfig: GameConfig;
   players: string[];
   status: "WAITING" | "STARTING" | "PLAYING" | "FINISHED";

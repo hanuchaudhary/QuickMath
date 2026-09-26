@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { http, ApiError } from "@/lib/http";
+import { gameTitle, isGameType, resolveGameMode } from "@matix/common";
 import { useAuthStore } from "@/stores/auth.store";
 import { UserAvatar } from "@/components/user-avatar";
+import { ApiError, http } from "@/lib/http";
 
 export function ProfilePage() {
   const user = useAuthStore((s) => s.user);
@@ -86,7 +87,9 @@ export function ProfilePage() {
           <div key={game.id} className="flex items-center justify-between rounded-2xl bg-panel px-4 py-3">
             <div>
               <p className="text-sm font-semibold">
-                {game.type === "DUELS" ? "Sprint Duels" : "Fastest Fingers"}
+                {isGameType(game.type)
+                  ? gameTitle(game.type, resolveGameMode(game.type, game.mode))
+                  : game.type}
               </p>
               <p className="text-xs text-white/40">
                 vs {game.opponents.map((o) => o.username).join(", ") || "—"}

@@ -1,7 +1,7 @@
 import { WebSocketServer } from "ws";
 import type { GameRoom, User } from "./utils/types";
 import { generateScore, verifyToken } from "./utils/lib";
-import { DEFAULT_GAME_CONFIG_BY_TYPE, isGameType } from "@matix/common";
+import { getGameConfig, isGameType, resolveGameMode, GameMode } from "@matix/common";
 import { generateQuiz } from "./utils/math";
 
 const PORT = 8080;
@@ -36,6 +36,7 @@ function roomData(room: GameRoom) {
   return {
     id: room.id,
     gameType: room.gameType,
+    gameMode: room.gameMode,
     gameConfig: room.gameConfig,
     players: room.players
       .map((p) => onlineUsers.get(p))
@@ -163,12 +164,14 @@ wss.on("connection", (ws, req) => {
           return;
         }
 
-        const gameConfig = DEFAULT_GAME_CONFIG_BY_TYPE[gameType];
+        const gameMode = resolveGameMode(gameType, payload.gameMode);
+        const gameConfig = getGameConfig(gameType, gameMode);
 
         const availableGameRooms = Array.from(gameRooms.values())
           .filter(
             (room) =>
               room.gameType === gameType &&
+              room.gameMode === gameMode &&
               room.status === "WAITING" &&
               room.gameConfig.maxPlayersCount > room.players.length,
           )
@@ -187,20 +190,7 @@ wss.on("connection", (ws, req) => {
 
           broadcastToRoom(gameRoom, {
             type: "USER_JOINED_GAME_ROOM",
-            data: {
-              id: gameRoom.id,
-              gameType: gameRoom.gameType,
-              gameConfig: gameRoom.gameConfig,
-              players: gameRoom.players
-                .map((p) => onlineUsers.get(p))
-                .filter(Boolean)
-                .map((p) => ({
-                  id: p!.id,
-                  username: p!.username,
-                  avatar: p!.avatar,
-                })),
-              status: roomStatus,
-            },
+            data: roomData(gameRoom),
           });
 
           const roomStates = playerStates.get(gameRoom.id) ?? new Map();
@@ -226,40 +216,14 @@ wss.on("connection", (ws, req) => {
 
             broadcastToRoom(gameRoom, {
               type: "GAME_READY",
-              data: {
-                id: gameRoom.id,
-                gameType: gameRoom.gameType,
-                gameConfig: gameRoom.gameConfig,
-                players: gameRoom.players
-                  .map((p) => onlineUsers.get(p))
-                  .filter(Boolean)
-                  .map((p) => ({
-                    id: p!.id,
-                    username: p!.username,
-                    avatar: p!.avatar,
-                  })),
-                status: roomStatus,
-              },
+              data: roomData(gameRoom),
             });
 
             setTimeout(() => {
               gameRoom.status = "PLAYING";
               broadcastToRoom(gameRoom, {
                 type: "GAME_STARTING",
-                data: {
-                  id: gameRoom.id,
-                  gameType: gameRoom.gameType,
-                  gameConfig: gameRoom.gameConfig,
-                  players: gameRoom.players
-                    .map((p) => onlineUsers.get(p))
-                    .filter(Boolean)
-                    .map((p) => ({
-                      id: p!.id,
-                      username: p!.username,
-                      avatar: p!.avatar,
-                    })),
-                  status: gameRoom.status,
-                },
+                data: roomData(gameRoom),
               });
 
               const questions = generateQuiz(
@@ -294,6 +258,7 @@ wss.on("connection", (ws, req) => {
           const gameRoom: GameRoom = {
             id: crypto.randomUUID(),
             gameType,
+            gameMode,
             gameConfig,
             players: [user.id],
             status: "WAITING",
@@ -318,20 +283,7 @@ wss.on("connection", (ws, req) => {
 
           broadcastToRoom(gameRoom, {
             type: "GAME_CREATED",
-            data: {
-              id: gameRoom.id,
-              gameType: gameRoom.gameType,
-              gameConfig: gameRoom.gameConfig,
-              players: gameRoom.players
-                .map((p) => onlineUsers.get(p))
-                .filter(Boolean)
-                .map((p) => ({
-                  id: p!.id,
-                  username: p!.username,
-                  avatar: p!.avatar,
-                })),
-              status: gameRoom.status,
-            },
+            data: roomData(gameRoom),
           });
           console.log("User created game room: " + gameRoom.id);
         }
@@ -397,7 +349,7 @@ wss.on("connection", (ws, req) => {
             };
           });
 
-        if (gameRoom.gameType === "DUELS") {
+        if (gameRoom.gameMode !== GameMode.FASTEST_FINGER_FIRST) {
           if (userRoom.questionIndex !== questionId) {
             ws.send(
               JSON.stringify({ type: "ERROR", payload: "Question not found" }),
