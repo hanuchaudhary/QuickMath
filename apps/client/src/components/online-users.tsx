@@ -11,7 +11,7 @@ export function OnlineUsers() {
         ? [{ id: user.id, username: user.username, avatar: user.avatar }, ...others]
         : others;
     return (
-        <div className="flex overflow-x-auto py-4 stagger">
+        <div className="flex overflow-x-auto py-4 stagger gap-2">
             {rail.slice(0, 8).map((person, index) => (
                 <Link
                     to={`/profile/${person.username}`}

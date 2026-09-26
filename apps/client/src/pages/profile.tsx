@@ -53,7 +53,7 @@ export function ProfilePage() {
     if (!isOwner) return;
     setMessage("");
     try {
-        const { user: next } = await http.updateMe({  avatar });
+      const { user: next } = await http.updateMe({ avatar });
       setUser(next);
       setProfile({ ...next });
       setMessage("Saved");
@@ -68,8 +68,6 @@ export function ProfilePage() {
   return (
     <div className="grid min-h-dvh grid-cols-6 px-8 py-6">
       <div className="col-span-4 min-w-0 px-16">
-        <OnlineUsers />
-
         {missing ? (
           <div className="mt-10 rounded-3xl bg-secondary p-8">
             <p className="text-sm font-medium text-red-400">PROFILE</p>
@@ -92,7 +90,10 @@ export function ProfilePage() {
                   size="lg"
                 />
                 <div>
-                  <p className="text-sm font-medium text-red-400">PLAYER</p>
+                  {
+                    !isOwner &&
+                    <p className="text-sm font-medium text-red-400">PLAYER</p>
+                  }
                   <h1 className="font-display text-5xl font-bold tracking-tighter sm:text-6xl">
                     {profile?.username ?? routeName}
                   </h1>
@@ -176,7 +177,7 @@ export function ProfilePage() {
       </div>
 
       <NavStats selected={{ text: "text-red-400" }} />
-    </div>
+    </div >
   );
 }
 
