@@ -1,5 +1,5 @@
 {
-  "name": "matixs",
+  "name": "quickmath",
   "private": true,
   "scripts": {
     "build": "turbo run build",

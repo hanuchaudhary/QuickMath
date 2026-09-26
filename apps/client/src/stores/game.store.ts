@@ -12,7 +12,7 @@ import {
   type PublicUser,
   type RoomSnapshot,
   type ServerMessage,
-} from "@matix/common";
+} from "@quickmath/common";
 
 const WS_URL = import.meta.env.VITE_WS_URL ?? "ws://localhost:8080";
 

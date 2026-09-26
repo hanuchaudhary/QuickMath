@@ -50,6 +50,12 @@ function MatchNavigator() {
   return null;
 }
 
+function OwnProfileRedirect() {
+  const user = useAuthStore((s) => s.user);
+  if (!user) return <Navigate to="/auth" replace />;
+  return <Navigate to={`/profile/${user.username}`} replace />;
+}
+
 function Boot() {
   const loadMe = useAuthStore((s) => s.loadMe);
   useEffect(() => {
@@ -79,6 +85,14 @@ export default function App() {
         />
         <Route
           path="/profile"
+          element={
+            <Protected>
+              <OwnProfileRedirect />
+            </Protected>
+          }
+        />
+        <Route
+          path="/profile/:username"
           element={
             <Protected>
               <ProfilePage />

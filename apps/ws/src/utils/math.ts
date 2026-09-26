@@ -1,4 +1,4 @@
-import type { GameDifficulty } from "@matix/common";
+import type { GameDifficulty } from "@quickmath/common";
 
 export type Difficulty = GameDifficulty;
 

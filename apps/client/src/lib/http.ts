@@ -1,4 +1,4 @@
-const TOKEN_KEY = "matix_token";
+const TOKEN_KEY = "quickmath_token";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
@@ -69,7 +69,7 @@ export const http = {
     }),
   logout: () => request<{ message: string }>("/api/v1/auth/logout", { method: "POST" }),
   me: () => request<{ user: AuthUser }>("/api/v1/auth/me"),
-  updateMe: (data: { username: string; avatar?: string }) =>
+  updateMe: (data: { avatar?: string }) =>
     request<{ user: AuthUser }>("/api/v1/users/me", {
       method: "PATCH",
       body: JSON.stringify(data),
@@ -91,6 +91,21 @@ export const http = {
         opponents: { id: string; username: string; avatar: string; score: number }[];
       }[];
     }>("/api/v1/games"),
+  getProfile: (username: string) =>
+    request<{
+      user: { id: string; username: string; avatar: string; email?: string };
+      stats: { gamesPlayed: number; wins: number; totalScore: number };
+      games: {
+        id: string;
+        type: string;
+        mode: string;
+        status: string;
+        score: number;
+        questionsAnswered: number;
+        createdAt: string;
+        opponents: { id: string; username: string; avatar: string; score: number }[];
+      }[];
+    }>(`/api/v1/users/${encodeURIComponent(username)}`),
   getGame: (id: string) =>
     request<{
       game: {

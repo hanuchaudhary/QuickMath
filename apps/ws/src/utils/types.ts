@@ -1,5 +1,5 @@
 import type WebSocket from "ws";
-import type { GameConfig, GameMode, GameType } from "@matix/common";
+import type { GameConfig, GameMode, GameType } from "@quickmath/common";
 import type { Difficulty, Question } from "./math";
 
 export type User = {

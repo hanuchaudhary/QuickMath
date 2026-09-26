@@ -132,7 +132,7 @@ function PlayerHud({
 }) {
   return (
     <div className={cn("flex items-center gap-3", align === "right" && "flex-row-reverse")}>
-      <div className={cn("ring-4 rounded-3xl p-2", isMe ? "ring-blue-400" : "ring-white/10")}>
+      <div className={cn("ring-4 rounded-3xl p-2", isMe ? "ring-red-400" : "ring-white/10")}>
         <UserAvatar name={name} src={avatar || undefined} />
       </div>
       <div className={cn(align === "right" && "text-right")}>

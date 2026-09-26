@@ -1,5 +1,5 @@
 {
-  "name": "@matix/client",
+  "name": "@quickmath/client",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -13,7 +13,8 @@
     "@base-ui/react": "^1.8.0",
     "@fontsource-variable/outfit": "^5.2.8",
     "@fontsource/ibm-plex-mono": "^5.2.7",
-    "@matix/common": "*",
+    "@quickmath/common": "*",
+    "@tabler/icons-react": "^3.48.0",
     "@tailwindcss/vite": "^4.3.3",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.3.0",

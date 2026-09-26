@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from "express";
-import { prisma } from "@matix/db";
-import { loginSchema, registerSchema } from "@matix/common";
+import { prisma } from "@quickmath/db";
+import { loginSchema, registerSchema } from "@quickmath/common";
 import {
   blacklistToken,
   comparePassword,

@@ -18,25 +18,30 @@ export function avatarTone(seed: string) {
 }
 
 export function UserAvatar({
+  isOnline = false,
   name,
   src,
   size = "md",
   className,
 }: {
+  isOnline?: boolean;
   name: string;
   src?: string;
   size?: "sm" | "md" | "lg";
   className?: string;
 }) {
-  const dim = size === "sm" ? "size-8 text-[11px]" : size === "lg" ? "size-14 text-lg" : "size-11 text-sm";
+  const dim = size === "sm" ? "size-8 text-[11px]" : size === "lg" ? "size-18 text-lg" : "size-11 text-sm";
 
   if (src) {
     return (
-      <img
-        src={src}
-        alt={name}
-        className={cn("rounded-full object-cover ring-2 ring-black/40", dim, className)}
-      />
+      <div className="relative">
+        <img
+          src={src}
+          alt={name}
+          className={cn("rounded-full object-cover ring-2 ring-black/40", dim, className)}
+        />
+        {isOnline && <div className="absolute top-1 right-1 size-4 rounded-full bg-green-300 ring-2 ring-background" />}
+      </div>
     );
   }
 

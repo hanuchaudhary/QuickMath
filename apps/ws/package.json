@@ -1,5 +1,5 @@
 {
-  "name": "@matix/ws",
+  "name": "@quickmath/ws",
   "module": "index.ts",
   "type": "module",
   "private": true,
@@ -14,8 +14,8 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "@matix/common": "*",
-    "@matix/db": "*",
+    "@quickmath/common": "*",
+    "@quickmath/db": "*",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/ws": "^8.18.1",
     "jsonwebtoken": "^9.0.3",

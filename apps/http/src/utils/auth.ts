@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { randomUUID } from "node:crypto";
-import { redis } from "@matix/db";
+import { redis } from "@quickmath/db";
 
 const jwtSecret = process.env.JWT_SECRET!;
 const JWT_EXPIRES_IN = "240h";

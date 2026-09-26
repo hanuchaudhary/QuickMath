@@ -12,6 +12,7 @@ import {
   X,
   Zap,
 } from "lucide-react";
+import { IconLayoutSidebarLeftCollapseFilled, IconLayoutSidebarRightCollapseFilled, IconLockFilled } from "@tabler/icons-react";
 import { UserAvatar } from "./user-avatar";
 import { useAuthStore } from "@/stores/auth.store";
 import { cn } from "@/lib/utils";
@@ -25,7 +26,7 @@ const NAV = [
   { to: "#more", label: "More", icon: MoreHorizontal, live: false },
 ];
 
-const SIDEBAR_KEY = "matiks-sidebar-collapsed";
+const SIDEBAR_KEY = "quickmath-sidebar-collapsed";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const user = useAuthStore((s) => s.user);
@@ -52,7 +53,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const compact = collapsed && !mobileOpen;
 
   return (
-    <div className="flex min-h-dvh bg-background">
+    <div className="flex min-h-dvh bg-background uppercase">
       {mobileOpen ? (
         <button
           type="button"
@@ -77,12 +78,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             compact ? "justify-center" : "gap-2 px-2",
           )}
         >
-          <span className="grid size-10 shrink-0 place-items-center rounded-full bg-blue-400 text-black">
+          <span className="grid size-10 shrink-0 place-items-center rounded-full bg-red-400 text-black">
             <Swords className="size-6" />
           </span>
           {!compact ? (
-            <span className="font-display text-4xl font-bold tracking-tighter text-blue-400">
-              MATIKS
+            <span className="font-display text-4xl font-bold tracking-tighter text-red-400">
+              Quick<span className="text-white">
+                Math
+              </span>
             </span>
           ) : null}
           <button
@@ -98,7 +101,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {NAV.map((item) => {
             const Icon = item.icon;
             const itemClass = cn(
-              "flex items-center rounded-2xl py-2.5 text-md font-medium",
+              "flex items-center rounded-xl py-2.5 text-sm font-medium",
               compact ? "justify-center px-0" : "gap-3 px-3",
             );
             if (!item.live) {
@@ -108,7 +111,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   title={item.label}
                   className={cn(itemClass, "text-white/35")}
                 >
-                  <Icon className="size-4 shrink-0" />
+                  {/* <Icon className="size-4 shrink-0" /> */}
+                  <IconLockFilled className="size-5 shrink-0 " />
                   {!compact ? item.label : null}
                 </div>
               );
@@ -124,7 +128,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     itemClass,
                     "font-medium",
                     isActive
-                      ? "border-4 border-background bg-secondary/50 text-blue-400 ring-3 ring-blue-400"
+                      ? "border-4 border-background bg-secondary/30 text-red-400 ring-2 ring-red-400"
                       : "text-white/55 hover:bg-white/5 hover:text-white",
                   )
                 }
@@ -146,11 +150,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           )}
         >
           {compact ? (
-            <PanelLeft className="size-5 shrink-0" />
+            <IconLayoutSidebarRightCollapseFilled className="size-5 shrink-0" />
           ) : (
             <>
-              <PanelLeftClose className="size-5 shrink-0" />
-              Collapse
+              <IconLayoutSidebarLeftCollapseFilled className="size-5 shrink-0" />
             </>
           )}
         </button>
@@ -159,7 +162,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           type="button"
           onClick={() => {
             setMobileOpen(false);
-            navigate("/profile");
+            navigate(user?.username ? `/profile/${user.username}` : "/profile");
           }}
           title={user?.username}
           className={cn(
@@ -186,7 +189,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           >
             <Menu className="size-5" />
           </button>
-          <span className="font-display text-3xl tracking-tighter text-blue-400">MATIKS</span>
+          <span className="font-display text-3xl tracking-tighter text-red-400">QuickMath</span>
         </div>
         <main className="min-w-0 flex-1">{children}</main>
       </div>

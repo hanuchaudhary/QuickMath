@@ -1,5 +1,5 @@
 {
-  "name": "@matix/http",
+  "name": "@quickmath/http",
   "module": "index.ts",
   "type": "module",
   "private": true,
@@ -14,8 +14,8 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "@matix/common": "*",
-    "@matix/db": "*",
+    "@quickmath/common": "*",
+    "@quickmath/db": "*",
     "@types/bcryptjs": "^3.0.0",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",

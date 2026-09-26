@@ -57,10 +57,10 @@ export function LandingPage() {
       <header className="fixed inset-x-0 top-0 z-20 border-b border-white/5 bg-background/80 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
           <Link to="/" className="flex items-center gap-2">
-            <span className="grid size-8 place-items-center rounded-full bg-blue-400 text-black">
+            <span className="grid size-8 place-items-center rounded-full bg-red-400 text-black">
               <Swords className="size-4" />
             </span>
-            <span className="font-display text-2xl text-blue-400">MATIKS</span>
+            <span className="font-display text-2xl text-red-400">QuickMath</span>
           </Link>
           <nav className="hidden items-center gap-8 text-sm text-white/60 sm:flex">
             <a href="#puzzles" className="hover:text-white">
@@ -72,7 +72,7 @@ export function LandingPage() {
           </nav>
           <Link
             to={playTo}
-            className="rounded-full bg-blue-400 px-4 py-2 text-sm font-medium text-black press-feedback"
+            className="rounded-full bg-red-400 px-4 py-2 text-sm font-medium text-black press-feedback"
           >
             {user ? "Enter arena" : "Play now"}
           </Link>
@@ -91,7 +91,7 @@ export function LandingPage() {
         ))}
         <div className="relative mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[1.1fr_0.9fr]">
           <div>
-            <p className="hero-rise text-sm font-medium tracking-[0.28em] text-blue-400 uppercase">
+            <p className="hero-rise text-sm font-medium tracking-[0.28em] text-red-400 uppercase">
               Mental math arena
             </p>
             <h1
@@ -112,7 +112,7 @@ export function LandingPage() {
             <div className="hero-rise mt-8 flex flex-wrap gap-3" style={{ animationDelay: "240ms" }}>
               <Link
                 to={playTo}
-                className="rounded-full bg-blue-400 px-6 py-3 text-sm font-medium text-black press-feedback"
+                className="rounded-full bg-red-400 px-6 py-3 text-sm font-medium text-black press-feedback"
               >
                 Start a duel
               </Link>
@@ -136,7 +136,7 @@ export function LandingPage() {
                 <div className="play-grid absolute inset-0" />
                 <MathPrompt prompt="14 * 6" className="text-5xl sm:text-6xl" />
               </div>
-              <div className="mt-8 grid h-14 place-items-center rounded-2xl border border-blue-400/40 bg-black/40 font-mono text-3xl text-blue-400">
+              <div className="mt-8 grid h-14 place-items-center rounded-2xl border border-blue-400/40 bg-black/40 font-mono text-3xl text-red-400">
                 84
               </div>
             </div>
@@ -149,14 +149,14 @@ export function LandingPage() {
           {[...MARQUEE, ...MARQUEE].map((item, index) => (
             <span key={`${item}-${index}`} className="font-display text-2xl text-white/35">
               {item}
-              <span className="ml-10 text-blue-400">●</span>
+              <span className="ml-10 text-red-400">●</span>
             </span>
           ))}
         </div>
       </div>
 
       <section id="puzzles" className="mx-auto max-w-6xl px-6 py-24">
-        <p className="text-sm font-medium tracking-[0.28em] text-blue-400 uppercase">Modes</p>
+        <p className="text-sm font-medium tracking-[0.28em] text-red-400 uppercase">Modes</p>
         <h2 className="mt-3 text-6xl text-white sm:text-7xl">Types of puzzles</h2>
         <p className="mt-3 max-w-lg text-white/50">
           Math is live today. Memory, puzzle, and logic boards are warming up in the queue.
@@ -171,13 +171,13 @@ export function LandingPage() {
                 style={{ animationDelay: `${index * 90}ms` }}
               >
                 <div className="flex items-start justify-between">
-                  <span className="grid size-12 place-items-center rounded-2xl bg-blue-400/15 text-blue-400 transition group-hover:bg-blue-400 group-hover:text-black">
+                  <span className="grid size-12 place-items-center rounded-2xl bg-red-400/15 text-red-400 transition group-hover:bg-red-400 group-hover:text-black">
                     <Icon className="size-5" />
                   </span>
                   <span
                     className={
                       puzzle.live
-                        ? "rounded-full bg-blue-400/15 px-3 py-1 text-xs font-medium text-blue-400"
+                        ? "rounded-full bg-red-400/15 px-3 py-1 text-xs font-medium text-red-400"
                         : "rounded-full bg-white/5 px-3 py-1 text-xs font-medium text-white/35"
                     }
                   >
@@ -192,7 +192,7 @@ export function LandingPage() {
                 {puzzle.live ? (
                   <Link
                     to={playTo}
-                    className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-blue-400"
+                    className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-red-400"
                   >
                     Jump in
                     <Clock className="size-3.5" />
@@ -209,7 +209,7 @@ export function LandingPage() {
       <footer className="border-t border-white/8 px-6 py-10">
         <div className="mx-auto flex max-w-6xl flex-col gap-8 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="font-display text-4xl text-blue-400">MATIKS</p>
+            <p className="font-display text-4xl text-red-400">QuickMath</p>
             <p className="mt-2 max-w-sm text-sm text-white/40">
               Fastest fingers. Cleanest math. Built for people who think in numbers.
             </p>
@@ -227,7 +227,7 @@ export function LandingPage() {
           </div>
         </div>
         <p className="mx-auto mt-8 max-w-6xl text-xs text-white/25">
-          © {new Date().getFullYear()} Matiks. All rights reserved.
+          © {new Date().getFullYear()} QuickMath. All rights reserved.
         </p>
       </footer>
     </div>

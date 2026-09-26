@@ -1,7 +1,7 @@
 import { WebSocketServer } from "ws";
 import type { GameRoom, User } from "./utils/types";
 import { generateScore, verifyToken } from "./utils/lib";
-import { getGameConfig, isGameType, resolveGameMode, GameMode } from "@matix/common";
+import { getGameConfig, isGameType, resolveGameMode, GameMode } from "@quickmath/common";
 import { generateQuiz } from "./utils/math";
 
 const PORT = 8080;

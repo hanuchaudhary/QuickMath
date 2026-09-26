@@ -1,5 +1,5 @@
 {
-  "name": "@matix/common",
+  "name": "@quickmath/common",
   "module": "index.ts",
   "type": "module",
   "exports": {

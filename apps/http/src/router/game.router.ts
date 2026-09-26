@@ -1,12 +1,12 @@
 import { Router, type Request, type Response } from "express";
-import { prisma } from "@matix/db";
+import { prisma } from "@quickmath/db";
 import { authMiddleware } from "../utils/middleware";
 
 export const gameRouter = Router();
 
 gameRouter.use(authMiddleware);
 
-function serializeGame(
+export function serializeGame(
   game: {
     id: string;
     type: string;
@@ -24,13 +24,13 @@ function serializeGame(
   },
   userId: string,
 ) {
-  const me = game.players.find((p) => p.user.id === userId);
-  const opponents = game.players.filter((p) => p.user.id !== userId);
+  const me = game.players.find((p) => p.user?.id === userId);
+  const opponents = game.players.filter((p) => p.user?.id && p.user.id !== userId);
 
   return {
     id: game.id,
     type: game.type,
-    mode: "mode" in game ? game.mode : "DEFAULT",
+    mode: game.mode ?? "DEFAULT",
     status: game.status,
     startedAt: game.startedAt,
     endedAt: game.endedAt,

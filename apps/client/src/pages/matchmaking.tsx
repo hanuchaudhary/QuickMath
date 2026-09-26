@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { gameTitle, isGameType, resolveGameMode } from "@matix/common";
+import { gameTitle, isGameType, resolveGameMode } from "@quickmath/common";
 import { UserAvatar } from "@/components/user-avatar";
 import { useAuthStore } from "@/stores/auth.store";
 import { useGameStore } from "@/stores/game.store";
@@ -52,7 +52,7 @@ export function MatchmakingPage() {
   return (
     <div className="grid min-h-dvh place-items-center px-6">
       <div className="w-full max-w-lg rounded-[32px] bg-panel p-10 text-center">
-        <p className="text-sm font-medium text-blue-400">{gameType ?? "GAME"}</p>
+        <p className="text-sm font-medium text-red-400">{gameType ?? "GAME"}</p>
         <h1 className="mt-3 font-display text-6xl font-bold tracking-tighter">{title}</h1>
         <p className="mt-2 text-sm text-white/40">
           {room?.status === "STARTING"
@@ -60,7 +60,7 @@ export function MatchmakingPage() {
             : `Waiting for players ${room ? `(${room.players.length}/${room.gameConfig.maxPlayersCount})` : ""}`}
         </p>
         {countdown !== null ? (
-          <p className="mt-6 font-display text-7xl font-semibold tabular-nums text-blue-400">
+          <p className="mt-6 font-display text-7xl font-semibold tabular-nums text-red-400">
             {countdown === 0 ? "GO" : countdown}
           </p>
         ) : null}
@@ -83,7 +83,7 @@ export function MatchmakingPage() {
                 ))
             ) : (
               <div className="grid size-14 place-items-center rounded-full border border-dashed border-white/20">
-                <span className="match-pulse size-3 rounded-full bg-blue-400" />
+                <span className="match-pulse size-3 rounded-full bg-red-400" />
               </div>
             )}
           </div>

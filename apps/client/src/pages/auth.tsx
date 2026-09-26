@@ -39,7 +39,7 @@ export function AuthPage() {
         onSubmit={onSubmit}
         className="w-full max-w-md rounded-[28px] border border-white/8 bg-panel p-8 shadow-[0_0_80px_rgba(182,255,59,0.08)]"
       >
-        <p className="font-display text-sm font-bold tracking-[0.24em] text-blue-400">MATIKS</p>
+        <p className="font-display text-sm font-bold tracking-[0.24em] text-red-400">QuickMath</p>
         <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight">
           {mode === "signin" ? "Back in the arena" : "Create your handle"}
         </h1>
@@ -72,7 +72,7 @@ export function AuthPage() {
         {error ? <p className="mt-4 text-sm text-red-400">{error}</p> : null}
 
         <button
-          className="mt-6 h-12 w-full rounded-2xl bg-blue-400 text-sm font-bold text-black press-feedback"
+          className="mt-6 h-12 w-full rounded-2xl bg-red-400 text-sm font-bold text-black press-feedback"
           disabled={pending}
           type="submit"
         >
