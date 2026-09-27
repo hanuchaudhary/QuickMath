@@ -176,8 +176,10 @@
   animation: card-in 640ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .shake, .pop-in, .match-pulse, .stagger > *, .hero-rise, .float-glyph, .marquee-track, .card-in {
-    animation: none;
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
   }
 }

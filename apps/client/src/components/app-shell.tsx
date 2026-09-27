@@ -32,7 +32,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const user = useAuthStore((s) => s.user);
   const navigate = useNavigate();
   const location = useLocation();
-  const playMode = location.pathname.startsWith("/play/");
+  const playMode = location.pathname === "/play" || location.pathname.startsWith("/play/");
   const [collapsed, setCollapsed] = useState(() => {
     return localStorage.getItem(SIDEBAR_KEY) === "1";
   });
@@ -189,7 +189,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           >
             <Menu className="size-5" />
           </button>
-          <span className="font-display text-3xl tracking-tighter text-red-400">QuickMath</span>
+          <span className="font-display text-2xl md:text-3xl tracking-tighter text-red-400">
+            Quick<span className="text-white">Math</span>
+          </span>
         </div>
         <main className="min-w-0 flex-1">{children}</main>
       </div>

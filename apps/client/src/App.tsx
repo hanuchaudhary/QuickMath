@@ -12,6 +12,8 @@ import { ProfilePage } from "@/pages/profile";
 import { ResultsPage } from "@/pages/results";
 import { useAuthStore } from "@/stores/auth.store";
 import { useGameStore } from "@/stores/game.store";
+import { playPath } from "@/lib/game-params";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 
 function Protected({ children }: { children: React.ReactNode }) {
   const user = useAuthStore((s) => s.user);
@@ -25,6 +27,7 @@ function Protected({ children }: { children: React.ReactNode }) {
   return (
     <AppShell>
       <MatchNavigator />
+      <ResumeDuelDialog />
       {children}
     </AppShell>
   );
@@ -32,22 +35,51 @@ function Protected({ children }: { children: React.ReactNode }) {
 
 function MatchNavigator() {
   const room = useGameStore((s) => s.room);
+  const pendingResume = useGameStore((s) => s.pendingResume);
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
+    if (pendingResume) return;
     if (!room) return;
+    if (room.status === "WAITING" || room.status === "STARTING") {
+      const path = playPath(room.gameType, room.gameMode);
+      if (`${location.pathname}${location.search}` !== path) {
+        navigate(path, { replace: true });
+      }
+    }
     if (room.status === "PLAYING") {
-      const path = `/play/${room.gameType}/${room.gameMode}/${room.id}`;
-      if (!location.pathname.startsWith(path)) navigate(path, { replace: true });
+      const path = playPath(room.gameType, room.gameMode, room.id);
+      if (`${location.pathname}${location.search}` !== path) navigate(path, { replace: true });
     }
     if (room.status === "FINISHED") {
-      const path = `/play/${room.gameType}/${room.gameMode}/${room.id}/results`;
-      if (location.pathname !== path) navigate(path, { replace: true });
+      const path = playPath(room.gameType, room.gameMode, room.id, true);
+      if (`${location.pathname}${location.search}` !== path) navigate(path, { replace: true });
     }
-  }, [location.pathname, navigate, room]);
+  }, [location.pathname, location.search, navigate, pendingResume, room]);
 
   return null;
+}
+
+function ResumeDuelDialog() {
+  const pendingResume = useGameStore((s) => s.pendingResume);
+  const resumeMatch = useGameStore((s) => s.resumeMatch);
+  const declineResume = useGameStore((s) => s.declineResume);
+
+  return (
+    <ConfirmDialog
+      open={Boolean(pendingResume)}
+      dismissible={false}
+      eyebrow="STILL LIVE"
+      title="DUEL ON PAUSE"
+      body="You dropped mid-match. Jump back in, or tap out and hand the win to your rival."
+      confirmLabel="Jump back in"
+      cancelLabel="Tap out"
+      onClose={() => {}}
+      onCancel={declineResume}
+      onConfirm={resumeMatch}
+    />
+  );
 }
 
 function OwnProfileRedirect() {
@@ -100,7 +132,7 @@ export default function App() {
           }
         />
         <Route
-          path="/play/:gameType/:gameMode"
+          path="/play"
           element={
             <Protected>
               <MatchmakingPage />
@@ -108,7 +140,7 @@ export default function App() {
           }
         />
         <Route
-          path="/play/:gameType/:gameMode/:roomId"
+          path="/play/:roomId"
           element={
             <Protected>
               <PlaygroundPage />
@@ -116,7 +148,7 @@ export default function App() {
           }
         />
         <Route
-          path="/play/:gameType/:gameMode/:roomId/results"
+          path="/play/:roomId/results"
           element={
             <Protected>
               <ResultsPage />

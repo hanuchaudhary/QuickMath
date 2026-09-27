@@ -36,7 +36,7 @@ export const GAME_MODES_BY_TYPE: Record<GameType, GameMode[]> = {
   [GameType.LOGIC]: [GameMode.DEFAULT],
 };
 
-const SHARED_CONFIG: GameConfig = {
+export const SHARED_CONFIG: GameConfig = {
   maxPlayersCount: 2,
   questionsCount: 100,
   difficulty: "medium",

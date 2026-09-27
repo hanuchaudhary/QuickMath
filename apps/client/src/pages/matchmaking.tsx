@@ -1,34 +1,43 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { gameTitle, isGameType, resolveGameMode } from "@quickmath/common";
+import { useLocation, useNavigate } from "react-router-dom";
+import { gameTitle } from "@quickmath/common";
 import { UserAvatar } from "@/components/user-avatar";
 import { useAuthStore } from "@/stores/auth.store";
 import { useGameStore } from "@/stores/game.store";
+import { arenaPath, playPath, readGameQuery } from "@/lib/game-params";
 
 export function MatchmakingPage() {
-  const { gameType, gameMode } = useParams();
+  const location = useLocation();
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
   const room = useGameStore((s) => s.room);
   const joinQueue = useGameStore((s) => s.joinQueue);
   const leaveQueue = useGameStore((s) => s.leaveQueue);
   const connected = useGameStore((s) => s.connected);
+  const hydrated = useGameStore((s) => s.hydrated);
+  const pendingResume = useGameStore((s) => s.pendingResume);
   const [countdown, setCountdown] = useState<number | null>(null);
+  const { hasGame, type: gameType, mode: resolvedMode } = readGameQuery(location.search);
 
   const joinedFor = useRef<string | null>(null);
-  const resolvedMode = isGameType(gameType) ? resolveGameMode(gameType, gameMode) : null;
 
   useEffect(() => {
-    if (!isGameType(gameType) || !resolvedMode) {
-      navigate("/arena", { replace: true });
+    if (!hasGame) {
+      navigate(arenaPath(gameType, resolvedMode), { replace: true });
       return;
     }
-    if (!connected) return;
+    const expected = playPath(gameType, resolvedMode);
+    if (`${location.pathname}${location.search}` !== expected) {
+      navigate(expected, { replace: true });
+    }
+    if (!connected || !hydrated) return;
+    if (pendingResume) return;
+    if (room && room.status !== "FINISHED") return;
     const key = `${gameType}:${resolvedMode}`;
     if (joinedFor.current === key) return;
     joinedFor.current = key;
     joinQueue(gameType, resolvedMode);
-  }, [connected, gameType, joinQueue, navigate, resolvedMode]);
+  }, [connected, gameType, hasGame, hydrated, joinQueue, location.pathname, location.search, navigate, pendingResume, resolvedMode, room]);
 
   useEffect(() => {
     if (room?.status !== "STARTING") {
@@ -44,10 +53,7 @@ export function MatchmakingPage() {
     return () => window.clearInterval(timer);
   }, [room?.id, room?.status]);
 
-  const title =
-    isGameType(gameType) && resolvedMode
-      ? gameTitle(gameType, resolvedMode)
-      : "Duel";
+  const title = gameTitle(gameType, resolvedMode);
 
   return (
     <div className="grid min-h-dvh place-items-center px-6">
@@ -94,7 +100,7 @@ export function MatchmakingPage() {
           className="mt-10 rounded-2xl bg-white/8 px-5 py-2 text-sm"
           onClick={() => {
             leaveQueue();
-            navigate("/arena");
+            navigate(arenaPath(gameType, resolvedMode));
           }}
         >
           Cancel

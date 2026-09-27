@@ -1,8 +1,9 @@
-import { GameType, type GameConfig, type GameMode } from "./constants";
+import { type GameConfig, type GameMode, type GameType } from "./constants";
 
 export const WsEvent = {
   PlayGame: "PLAY_GAME",
   LeaveGame: "LEAVE_GAME",
+  ForfeitGame: "FORFEIT_GAME",
   AnswerQuestion: "ANSWER_QUESTION",
   OnlineUsers: "ONLINE_USERS",
   GameCreated: "GAME_CREATED",
@@ -10,6 +11,7 @@ export const WsEvent = {
   GameReady: "GAME_READY",
   GameClose: "GAME_CLOSE",
   GameStarting: "GAME_STARTING",
+  GameReconnected: "GAME_RECONNECTED",
   Questions: "QUESTIONS",
   UserStats: "USER_STATS",
   GameFinished: "GAME_FINISHED",
@@ -24,11 +26,19 @@ export type PublicUser = {
   avatar: string;
 };
 
+export type RoundKind = "math" | "mind_snap" | "flash_anzan";
+export type RoundPhase = "memorize" | "recall" | "flash" | "answer";
+
 export type PublicQuestion = {
   id: number;
   index: number;
-  prompt: string;
-  answer: number;
+  kind: RoundKind;
+  prompt?: string;
+  answer?: number;
+  grid?: { size: number; cells?: number[]; targetCount?: number };
+  sequence?: number[];
+  phase?: RoundPhase;
+  phaseEndsAt?: number;
 };
 
 export type PlayerStat = {
@@ -48,18 +58,21 @@ export type RoomSnapshot = {
   endedAt?: number;
 };
 
+export type GameAnswer = number | number[];
+
 export type ClientMessage =
   | {
       type: typeof WsEvent.PlayGame;
       payload: { gameType: GameType; gameMode?: GameMode };
     }
   | { type: typeof WsEvent.LeaveGame; payload?: { roomId?: string } }
+  | { type: typeof WsEvent.ForfeitGame; payload?: { roomId?: string } }
   | {
       type: typeof WsEvent.AnswerQuestion;
-      payload: { gameId: string; questionId: number; answer: number };
+      payload: { gameId: string; questionId: number; answer: GameAnswer };
     };
 
-type RoomPayload = {
+export type RoomPayload = {
   id: string;
   gameType: GameType;
   gameMode: GameMode;
@@ -70,14 +83,7 @@ type RoomPayload = {
   endedAt?: number;
 };
 
-type RawQuestion = {
-  id: number;
-  question: string;
-  answer: number;
-  difficulty: string;
-};
-
-type RawStat = {
+export type RawStat = {
   userId: string;
   score: number;
   totalAnsweredQuestions?: number;
@@ -91,21 +97,23 @@ export type ServerMessage =
   | { type: typeof WsEvent.GameReady; data: RoomPayload }
   | { type: typeof WsEvent.GameClose; data: RoomPayload & { userId: string } }
   | { type: typeof WsEvent.GameStarting; data: RoomPayload }
-  | { type: typeof WsEvent.Questions; data: { question: RawQuestion } }
+  | {
+      type: typeof WsEvent.GameReconnected;
+      data: RoomPayload & {
+        stats: RawStat[];
+        question?: PublicQuestion;
+      };
+    }
+  | { type: typeof WsEvent.Questions; data: { question: PublicQuestion } }
   | { type: typeof WsEvent.UserStats; data: RawStat[] }
   | {
       type: typeof WsEvent.GameFinished;
-      data: { roomId: string; stats: RawStat[] };
+      data: { roomId: string; stats: RawStat[]; winnerId?: string | null };
     }
   | { type: typeof WsEvent.Error; payload: string };
 
-export function toPublicQuestion(question: RawQuestion): PublicQuestion {
-  return {
-    id: question.id,
-    index: question.id,
-    prompt: question.question,
-    answer: question.answer,
-  };
+export function toPublicQuestion(question: PublicQuestion): PublicQuestion {
+  return question;
 }
 
 export function toPlayerStats(stats: RawStat[]): PlayerStat[] {

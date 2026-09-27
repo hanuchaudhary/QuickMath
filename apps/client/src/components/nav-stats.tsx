@@ -8,7 +8,7 @@ export function NavStats({ selected }: {
 }
 ) {
     return (
-        <aside className="col-span-2 flex flex-col gap-4">
+        <aside className="col-span-2 hidden flex-col gap-4 md:flex">
             <div className="flex flex-wrap justify-start gap-2 xl:justify-end">
                 <span className="rounded-full bg-secondary px-3 py-2 text-sm font-semibold border flex items-center justify-center">
                     <IconDiamondFilled className={cn("mr-1 inline size-5", selected.text)} /> 500

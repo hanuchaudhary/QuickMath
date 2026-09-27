@@ -1,13 +1,53 @@
 import type WebSocket from "ws";
-import type { GameConfig, GameMode, GameType } from "@quickmath/common";
+import type {
+  GameAnswer,
+  GameConfig,
+  GameMode,
+  GameType,
+  PublicQuestion,
+} from "@quickmath/common";
 import type { Difficulty, Question } from "./math";
+
+export type RoomStatus = "WAITING" | "STARTING" | "PLAYING" | "FINISHED";
 
 export type User = {
   id: string;
   username: string;
   avatar: string;
   socket: WebSocket;
+  connected: boolean;
 };
+
+export type PlayerState = {
+  userId: string;
+  questionIndex: number;
+  score: number;
+  answerQuestionIds: number[];
+};
+
+export type MemoryCell = {
+  id: number;
+  value: 0 | 1;
+};
+
+export type MindSnapRound = {
+  kind: "mind_snap";
+  size: number;
+  cells: MemoryCell[];
+  phase: "memorize" | "recall";
+  phaseEndsAt: number;
+  submitted: string[];
+};
+
+export type FlashAnzanRound = {
+  kind: "flash_anzan";
+  sequence: number[];
+  sum: number;
+  phase: "flash" | "answer";
+  phaseEndsAt: number;
+};
+
+export type MemoryRound = MindSnapRound | FlashAnzanRound;
 
 export type GameRoom = {
   id: string;
@@ -15,20 +55,21 @@ export type GameRoom = {
   gameMode: GameMode;
   gameConfig: GameConfig;
   players: string[];
-  status: "WAITING" | "STARTING" | "PLAYING" | "FINISHED";
-
+  status: RoomStatus;
   questions: Question[];
-
+  memoryRound?: MemoryRound;
   startedAt?: number;
   endedAt?: number;
-
   currentQuestion?: {
     id: number;
     index: number;
-    answer?: number;
     answeredBy: string | null;
     startedAt: Date;
   };
+  startTimer?: ReturnType<typeof setTimeout>;
+  endTimer?: ReturnType<typeof setTimeout>;
+  phaseTimer?: ReturnType<typeof setTimeout>;
+  gcTimer?: ReturnType<typeof setTimeout>;
 };
 
 export type GameQuestion = {
@@ -38,10 +79,30 @@ export type GameQuestion = {
   difficulty: Difficulty;
 };
 
-export type GameAnswer = {
-  questionId: number;
-  answer: number;
-  isCorrect: boolean;
-  timeTaken: number;
-  playerId: string;
+export type AnswerResult = {
+  ok: boolean;
+  error?: string;
+  nextPublic?: PublicQuestion;
+  broadcastNext?: boolean;
+  finish?: boolean;
+  scored?: boolean;
 };
+
+export type PhaseContext = {
+  broadcast: (message: unknown) => void;
+  send: (userId: string, message: unknown) => void;
+  schedulePhase: (fn: () => void, ms: number) => void;
+  clearPhase: () => void;
+};
+
+export interface GameModeHandler {
+  prepare(room: GameRoom): void;
+  publicQuestion(room: GameRoom, player: PlayerState): PublicQuestion | undefined;
+  answer(
+    room: GameRoom,
+    player: PlayerState,
+    answer: GameAnswer,
+    questionId: number,
+  ): AnswerResult;
+  startPhases?(room: GameRoom, ctx: PhaseContext): void;
+}

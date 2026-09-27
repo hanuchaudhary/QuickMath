@@ -3,16 +3,14 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { gameTitle, isGameType, resolveGameMode } from "@quickmath/common";
 import { useAuthStore } from "@/stores/auth.store";
 import { UserAvatar } from "@/components/user-avatar";
-import { OnlineUsers } from "@/components/online-users";
 import { NavStats } from "@/components/nav-stats";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { ApiError, http } from "@/lib/http";
 
 export function ProfilePage() {
   const { username: routeName } = useParams();
   const navigate = useNavigate();
-  const me = useAuthStore((s) => s.user);
-  const setUser = useAuthStore((s) => s.setUser);
-  const logout = useAuthStore((s) => s.logout);
+  const { user: me, setUser, logout } = useAuthStore();
 
   const [profile, setProfile] = useState<{
     id: string;
@@ -27,6 +25,7 @@ export function ProfilePage() {
   const [games, setGames] = useState<
     Awaited<ReturnType<typeof http.getProfile>>["games"]
   >([]);
+  const [confirmLogout, setConfirmLogout] = useState(false);
 
   const isOwner = Boolean(me && profile && me.id === profile.id);
 
@@ -106,7 +105,7 @@ export function ProfilePage() {
                 <button
                   type="button"
                   className="rounded-2xl bg-white/8 px-5 py-2 text-sm"
-                  onClick={() => logout()}
+                  onClick={() => setConfirmLogout(true)}
                 >
                   Log out
                 </button>
@@ -177,6 +176,17 @@ export function ProfilePage() {
       </div>
 
       <NavStats selected={{ text: "text-red-400" }} />
+      <ConfirmDialog
+        open={confirmLogout}
+        title="LOG OUT?"
+        body="You'll need to sign in again to keep playing."
+        confirmLabel="Log out"
+        onClose={() => setConfirmLogout(false)}
+        onConfirm={() => {
+          setConfirmLogout(false);
+          void logout();
+        }}
+      />
     </div >
   );
 }

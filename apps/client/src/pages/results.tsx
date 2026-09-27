@@ -1,19 +1,32 @@
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { UserAvatar } from "@/components/user-avatar";
 import { useAuthStore } from "@/stores/auth.store";
 import { useGameStore } from "@/stores/game.store";
+import { arenaPath, readGameQuery } from "@/lib/game-params";
 
 export function ResultsPage() {
   const { roomId } = useParams();
+  const location = useLocation();
   const navigate = useNavigate();
+  const { type, mode } = readGameQuery(location.search);
   const user = useAuthStore((s) => s.user);
   const room = useGameStore((s) => s.room);
   const stats = useGameStore((s) => s.stats);
   const winnerId = useGameStore((s) => s.winnerId);
   const resetMatch = useGameStore((s) => s.resetMatch);
+  const connected = useGameStore((s) => s.connected);
+  const hydrated = useGameStore((s) => s.hydrated);
 
   const won = winnerId === user?.id;
   const tied = winnerId === null;
+
+  if (!hydrated || !connected) {
+    return (
+      <div className="grid min-h-dvh place-items-center text-white/40">
+        Reconnecting...
+      </div>
+    );
+  }
 
   return (
     <div className="grid min-h-dvh place-items-center px-6">
@@ -47,7 +60,7 @@ export function ResultsPage() {
           className="mt-8 w-full rounded-full bg-red-400 py-5 font-medium text-black"
           onClick={() => {
             resetMatch();
-            navigate("/arena");
+            navigate(arenaPath(type, mode));
           }}
         >
           Back to arena

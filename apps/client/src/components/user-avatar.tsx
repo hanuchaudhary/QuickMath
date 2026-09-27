@@ -30,7 +30,7 @@ export function UserAvatar({
   size?: "sm" | "md" | "lg";
   className?: string;
 }) {
-  const dim = size === "sm" ? "size-8 text-[11px]" : size === "lg" ? "size-18 text-lg" : "size-11 text-sm";
+  const dim = size === "sm" ? "size-8 text-[11px]" : size === "lg" ? "md:size-18 size-14 text-lg" : "size-11 text-sm";
 
   if (src) {
     return (
@@ -48,7 +48,7 @@ export function UserAvatar({
   return (
     <div
       className={cn(
-        "grid place-items-center rounded-full font-semibold text-black ring-2 ring-black/40",
+        "grid place-items-center rounded-full font-semibold text-black ring-4 ring-black/40",
         dim,
         avatarTone(name),
         className,

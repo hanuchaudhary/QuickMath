@@ -6,6 +6,7 @@ import {
   toPublicQuestion,
   winnerIdFromStats,
   type GameType as GameTypeName,
+  type GameAnswer,
   type GameMode,
   type PlayerStat,
   type PublicQuestion,
@@ -16,9 +17,16 @@ import {
 
 const WS_URL = import.meta.env.VITE_WS_URL ?? "ws://localhost:8080";
 
+type ResumeOffer = {
+  room: RoomSnapshot;
+  question: PublicQuestion | null;
+  stats: PlayerStat[];
+};
+
 type GameState = {
   socket: WebSocket | null;
   connected: boolean;
+  hydrated: boolean;
   onlineUsers: PublicUser[];
   room: RoomSnapshot | null;
   question: PublicQuestion | null;
@@ -26,23 +34,34 @@ type GameState = {
   winnerId: string | null;
   error: string | null;
   lastShakeAt: number;
+  pendingResume: ResumeOffer | null;
   connect: (token: string) => void;
   disconnect: () => void;
   joinQueue: (gameType: GameTypeName, gameMode?: GameMode) => void;
   leaveQueue: () => void;
-  answer: (value: number) => void;
+  forfeit: () => void;
+  resumeMatch: () => void;
+  declineResume: () => void;
+  answer: (value: GameAnswer) => void;
   clearError: () => void;
   resetMatch: () => void;
 };
 
-function applyRoom(data: RoomSnapshot, extras: Partial<RoomSnapshot> = {}): RoomSnapshot {
+function applyRoom(
+  data: RoomSnapshot,
+  extras: Partial<RoomSnapshot> = {},
+): RoomSnapshot {
   return { ...data, ...extras };
 }
 
-function applyMessage(set: (partial: Partial<GameState>) => void, get: () => GameState, message: ServerMessage) {
+function applyMessage(
+  set: (partial: Partial<GameState>) => void,
+  get: () => GameState,
+  message: ServerMessage,
+) {
   switch (message.type) {
     case WsEvent.OnlineUsers:
-      set({ onlineUsers: message.data });
+      set({ onlineUsers: message.data, hydrated: true });
       break;
     case WsEvent.GameCreated:
     case WsEvent.UserJoinedGameRoom:
@@ -51,6 +70,8 @@ function applyMessage(set: (partial: Partial<GameState>) => void, get: () => Gam
         room: applyRoom(message.data),
         winnerId: null,
         error: null,
+        hydrated: true,
+        pendingResume: null,
       });
       break;
     case WsEvent.GameClose:
@@ -59,42 +80,83 @@ function applyMessage(set: (partial: Partial<GameState>) => void, get: () => Gam
         winnerId: null,
         error: null,
         question: null,
+        hydrated: true,
       });
       break;
-    case WsEvent.GameStarting: {
-      const now = Date.now();
-      const timeLimit = message.data.gameConfig.timeLimit * 1000;
+    case WsEvent.GameStarting:
       set({
-        room: applyRoom(message.data, {
-          status: "PLAYING",
-          startedAt: now,
-          endedAt: now + timeLimit,
-        }),
+        room: applyRoom(message.data, { status: "PLAYING" }),
         winnerId: null,
         error: null,
+        hydrated: true,
+        pendingResume: null,
       });
       break;
-    }
     case WsEvent.Questions:
-      set({ question: toPublicQuestion(message.data.question), error: null });
+      set({
+        question: toPublicQuestion(message.data.question),
+        error: null,
+        hydrated: true,
+      });
       break;
     case WsEvent.UserStats:
-      set({ stats: toPlayerStats(message.data) });
+      set({ stats: toPlayerStats(message.data), hydrated: true });
       break;
     case WsEvent.GameFinished: {
       const stats = toPlayerStats(message.data.stats);
       set({
-        winnerId: winnerIdFromStats(stats),
+        winnerId:
+          message.data.winnerId !== undefined
+            ? message.data.winnerId
+            : winnerIdFromStats(stats),
         stats,
         room: get().room
           ? { ...get().room!, status: "FINISHED" }
-          : get().room,
+          : get().pendingResume
+            ? { ...get().pendingResume!.room, status: "FINISHED" }
+            : get().room,
+        pendingResume: null,
+        hydrated: true,
+      });
+      break;
+    }
+    case WsEvent.GameReconnected: {
+      const stats = toPlayerStats(message.data.stats ?? []);
+      const room = applyRoom(message.data);
+      const question = message.data.question
+        ? toPublicQuestion(message.data.question)
+        : null;
+      const current = get().room;
+      const sameLiveMatch =
+        current?.id === room.id && current.status === "PLAYING";
+
+      if (room.status === "PLAYING" && !sameLiveMatch) {
+        set({
+          pendingResume: { room, question, stats },
+          winnerId: null,
+          error: null,
+          hydrated: true,
+        });
+        return;
+      }
+
+      set({
+        room,
+        winnerId:
+          room.status === "FINISHED" ? winnerIdFromStats(stats) : null,
+        error: null,
+        stats,
+        question,
+        lastShakeAt: 0,
+        hydrated: true,
+        pendingResume: null,
       });
       break;
     }
     case WsEvent.Error:
       set({
         error: message.payload,
+        hydrated: true,
         lastShakeAt:
           message.payload === "Question already answered" ||
           message.payload === "Question not found"
@@ -108,6 +170,7 @@ function applyMessage(set: (partial: Partial<GameState>) => void, get: () => Gam
 export const useGameStore = create<GameState>((set, get) => ({
   socket: null,
   connected: false,
+  hydrated: false,
   onlineUsers: [],
   room: null,
   question: null,
@@ -115,18 +178,25 @@ export const useGameStore = create<GameState>((set, get) => ({
   winnerId: null,
   error: null,
   lastShakeAt: 0,
+  pendingResume: null,
   connect: (token) => {
     const current = get().socket;
-    if (current && (current.readyState === WebSocket.OPEN || current.readyState === WebSocket.CONNECTING)) {
+    if (
+      current &&
+      (current.readyState === WebSocket.OPEN ||
+        current.readyState === WebSocket.CONNECTING)
+    ) {
       return;
     }
 
-    const socket = new WebSocket(`${WS_URL}?token=${encodeURIComponent(token)}`);
+    const socket = new WebSocket(
+      `${WS_URL}?token=${encodeURIComponent(token)}`,
+    );
 
-    socket.onopen = () => set({ connected: true, socket });
+    socket.onopen = () => set({ connected: true, socket, hydrated: false });
     socket.onclose = () => {
       if (get().socket === socket) {
-        set({ connected: false, socket: null });
+        set({ connected: false, socket: null, hydrated: false });
       }
     };
     socket.onmessage = (event) => {
@@ -134,26 +204,36 @@ export const useGameStore = create<GameState>((set, get) => ({
         const message = JSON.parse(event.data) as ServerMessage;
         applyMessage(set, get, message);
       } catch {
-        // ignore malformed frames
+        set({ hydrated: true });
       }
     };
 
-    set({ socket });
+    set({ socket, hydrated: false });
   },
   disconnect: () => {
     get().socket?.close();
     set({
       socket: null,
       connected: false,
+      hydrated: false,
       room: null,
       question: null,
       stats: [],
       winnerId: null,
+      pendingResume: null,
     });
   },
   joinQueue: (gameType, gameMode) => {
+    const { room, pendingResume } = get();
+    if (pendingResume) return;
+    if (room && room.status !== "FINISHED") {
+      return;
+    }
     get().socket?.send(
-      JSON.stringify({ type: WsEvent.PlayGame, payload: { gameType, gameMode } }),
+      JSON.stringify({
+        type: WsEvent.PlayGame,
+        payload: { gameType, gameMode },
+      }),
     );
   },
   leaveQueue: () => {
@@ -162,6 +242,34 @@ export const useGameStore = create<GameState>((set, get) => ({
       JSON.stringify({ type: WsEvent.LeaveGame, payload: { roomId } }),
     );
     set({ room: null, question: null, stats: [], winnerId: null });
+  },
+  forfeit: () => {
+    const roomId = get().pendingResume?.room.id ?? get().room?.id;
+    get().socket?.send(
+      JSON.stringify({ type: WsEvent.ForfeitGame, payload: { roomId } }),
+    );
+  },
+  resumeMatch: () => {
+    const pending = get().pendingResume;
+    if (!pending) return;
+    set({
+      room: pending.room,
+      question: pending.question,
+      stats: pending.stats,
+      winnerId: null,
+      lastShakeAt: 0,
+      pendingResume: null,
+    });
+  },
+  declineResume: () => {
+    get().forfeit();
+    set({
+      pendingResume: null,
+      room: null,
+      question: null,
+      stats: [],
+      winnerId: null,
+    });
   },
   answer: (value) => {
     const { room, question, socket } = get();
@@ -182,7 +290,14 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
   clearError: () => set({ error: null }),
   resetMatch: () =>
-    set({ room: null, question: null, stats: [], winnerId: null, error: null }),
+    set({
+      room: null,
+      question: null,
+      stats: [],
+      winnerId: null,
+      error: null,
+      pendingResume: null,
+    }),
 }));
 
 export { GameType };
