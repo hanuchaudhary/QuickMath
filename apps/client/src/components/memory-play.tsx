@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { type PublicQuestion } from "@quickmath/common";
 import { cn } from "@/lib/utils";
 
@@ -12,28 +12,31 @@ export function MindSnapBoard({
   shake: boolean;
 }) {
   const size = question.grid?.size ?? 4;
-  const revealed = new Set(question.grid?.cells ?? []);
-  const targetCount = question.grid?.targetCount ?? revealed.size;
+  const correct = new Set(question.grid?.cells ?? []);
+  const targetCount = question.grid?.targetCount ?? correct.size;
   const isMemorize = question.phase === "memorize";
   const [picked, setPicked] = useState<number[]>([]);
   const [locked, setLocked] = useState(false);
+  const sent = useRef(false);
 
   useEffect(() => {
     setPicked([]);
     setLocked(false);
+    sent.current = false;
   }, [question.id, question.phase]);
 
-  function toggle(id: number) {
+  function pick(id: number) {
     if (isMemorize || locked) return;
     setPicked((current) => {
       if (current.includes(id)) {
-        return current.filter((cell) => cell !== id);
+        return current;
       }
       if (targetCount > 0 && current.length >= targetCount) {
         return current;
       }
       const next = [...current, id];
-      if (targetCount > 0 && next.length === targetCount) {
+      if (targetCount > 0 && next.length === targetCount && !sent.current) {
+        sent.current = true;
         setLocked(true);
         window.setTimeout(() => onSubmit(next), 0);
       }
@@ -43,7 +46,7 @@ export function MindSnapBoard({
 
   return (
     <div className="relative z-10 flex flex-col items-center gap-4">
-      <p className="text-sm font-medium uppercase tracking-[0.2em] text-green-400">
+      <p className="font-medium uppercase font-display text-2xl">
         {isMemorize
           ? "Hold the pattern"
           : locked
@@ -55,18 +58,24 @@ export function MindSnapBoard({
         style={{ gridTemplateColumns: `repeat(${size}, minmax(0, 1fr))` }}
       >
         {Array.from({ length: size * size }, (_, id) => {
-          const lit = isMemorize ? revealed.has(id) : picked.includes(id);
+          const selected = picked.includes(id);
+          const isCorrect = correct.has(id);
+          const showPattern = isMemorize && isCorrect;
+          const showHit = !isMemorize && selected && isCorrect;
+          const showMiss = !isMemorize && selected && !isCorrect;
           return (
             <button
               key={id}
               type="button"
               disabled={isMemorize || locked}
-              onClick={() => toggle(id)}
+              onClick={() => pick(id)}
               className={cn(
-                "size-14 rounded-xl border transition sm:size-16",
-                lit
-                  ? "border-green-300 bg-green-400 shadow-[0_0_24px_rgba(74,222,128,0.45)]"
-                  : "border-white/10 bg-[#1f1f1f] hover:border-white/25",
+                "size-14 rounded-lg border transition sm:size-16",
+                showPattern || showHit
+                  ? "border-green-300 bg-green-400"
+                  : showMiss
+                    ? "border-red-400 bg-red-400"
+                    : "border-white/10 bg-[#1f1f1f] hover:border-white/25",
                 isMemorize && "cursor-default",
               )}
             />
@@ -115,8 +124,8 @@ export function FlashAnzanBoard({
 
   if (flashing) {
     return (
-      <div className="relative z-10 grid h-[280px] place-items-center">
-        <p className="mb-6 text-sm font-medium uppercase tracking-[0.2em] text-green-400">
+      <div className="relative z-10 grid h-70 place-items-center">
+        <p className="mb-6 font-medium uppercase font-display text-2xl text-muted-foreground">
           Add them up
         </p>
         <p
@@ -131,7 +140,7 @@ export function FlashAnzanBoard({
 
   return (
     <div className="relative z-10 w-full max-w-md text-center">
-      <p className="mb-3 text-sm font-medium uppercase tracking-[0.2em] text-green-400">
+      <p className="mb-3 font-medium uppercase font-display text-2xl">
         Sum
       </p>
       <input

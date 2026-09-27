@@ -10,6 +10,7 @@ import { evaluatePrompt } from "@/lib/math-prompt";
 import { cn } from "@/lib/utils";
 import { arenaPath, readGameQuery } from "@/lib/game-params";
 import { ConfirmDialog } from "@/components/confirm-dialog";
+import { IconX } from "@tabler/icons-react";
 
 export function PlaygroundPage() {
   const { roomId } = useParams();
@@ -92,9 +93,14 @@ export function PlaygroundPage() {
       <button
         type="button"
         onClick={() => setTapOut(true)}
-        className="absolute top-6 right-6 rounded-full border border-red-400/40 bg-red-400/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-red-400"
+        className="absolute md:top-6 md:right-6 top-24 rounded-full md:rounded-lg md:border-3 md:ring-2 ring-neutral-400 md:border-background md:bg-neutral-400 px-4 py-1 text-xl font-display font-semibold uppercase md:text-background hover:bg-red-400 hover:ring-red-400 cursor-pointer md:size-auto size-8 flex items-center justify-center"
       >
+        <span className="hidden md:block">
         Tap Out
+        </span>
+        <span className="block md:hidden">
+          <IconX size={16} />
+        </span>
       </button>
       <div className="flex w-full max-w-xl items-start justify-between">
         <PlayerHud

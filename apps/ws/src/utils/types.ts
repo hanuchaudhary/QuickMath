@@ -23,11 +23,19 @@ export type PlayerState = {
   questionIndex: number;
   score: number;
   answerQuestionIds: number[];
+  memoryPhase?: "memorize" | "recall";
+  memoryPhaseEndsAt?: number;
+  memoryStartedAt?: number;
 };
 
 export type MemoryCell = {
   id: number;
   value: 0 | 1;
+};
+
+export type MemoryPuzzle = {
+  size: number;
+  cells: MemoryCell[];
 };
 
 export type MindSnapRound = {
@@ -57,6 +65,7 @@ export type GameRoom = {
   players: string[];
   status: RoomStatus;
   questions: Question[];
+  memoryPuzzles?: MemoryPuzzle[];
   memoryRound?: MemoryRound;
   startedAt?: number;
   endedAt?: number;
@@ -69,6 +78,7 @@ export type GameRoom = {
   startTimer?: ReturnType<typeof setTimeout>;
   endTimer?: ReturnType<typeof setTimeout>;
   phaseTimer?: ReturnType<typeof setTimeout>;
+  playerPhaseTimers?: Map<string, ReturnType<typeof setTimeout>>;
   gcTimer?: ReturnType<typeof setTimeout>;
 };
 
@@ -84,6 +94,7 @@ export type AnswerResult = {
   error?: string;
   nextPublic?: PublicQuestion;
   broadcastNext?: boolean;
+  restartPlayerPhase?: boolean;
   finish?: boolean;
   scored?: boolean;
 };
@@ -93,6 +104,8 @@ export type PhaseContext = {
   send: (userId: string, message: unknown) => void;
   schedulePhase: (fn: () => void, ms: number) => void;
   clearPhase: () => void;
+  scheduleFor: (userId: string, fn: () => void, ms: number) => void;
+  clearFor: (userId: string) => void;
 };
 
 export interface GameModeHandler {
@@ -105,4 +118,9 @@ export interface GameModeHandler {
     questionId: number,
   ): AnswerResult;
   startPhases?(room: GameRoom, ctx: PhaseContext): void;
+  startPlayerPhase?(
+    room: GameRoom,
+    player: PlayerState,
+    ctx: PhaseContext,
+  ): void;
 }

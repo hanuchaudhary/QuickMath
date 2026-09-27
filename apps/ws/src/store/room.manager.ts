@@ -91,6 +91,12 @@ export class RoomManager {
       clearTimeout(room.phaseTimer);
       room.phaseTimer = undefined;
     }
+    if (room.playerPhaseTimers) {
+      for (const timer of room.playerPhaseTimers.values()) {
+        clearTimeout(timer);
+      }
+      room.playerPhaseTimers.clear();
+    }
     if (room.gcTimer) {
       clearTimeout(room.gcTimer);
       room.gcTimer = undefined;

@@ -228,6 +228,21 @@ export class GameManager {
       return;
     }
 
+    if (result.restartPlayerPhase && handler.startPlayerPhase) {
+      const ctx = this.phaseContext(room);
+      ctx.scheduleFor(
+        player.userId,
+        () => {
+          if (room.status !== "PLAYING") {
+            return;
+          }
+          handler.startPlayerPhase?.(room, player, ctx);
+        },
+        500,
+      );
+      return;
+    }
+
     if (handler.startPhases && result.broadcastNext) {
       handler.startPhases(room, this.phaseContext(room));
       return;
@@ -419,7 +434,14 @@ export class GameManager {
     });
 
     const ctx = this.phaseContext(room);
-    if (handler.startPhases) {
+    if (handler.startPlayerPhase) {
+      const states = this.roomManager.getRoomStates(room.id);
+      if (states) {
+        for (const player of states.values()) {
+          handler.startPlayerPhase(room, player, ctx);
+        }
+      }
+    } else if (handler.startPhases) {
       handler.startPhases(room, ctx);
     } else {
       const states = this.roomManager.getRoomStates(room.id);
@@ -443,6 +465,9 @@ export class GameManager {
   }
 
   private phaseContext(room: GameRoom): PhaseContext {
+    if (!room.playerPhaseTimers) {
+      room.playerPhaseTimers = new Map();
+    }
     return {
       broadcast: (message) => this.wsManager.broadcast(room.players, message),
       send: (userId, message) => this.wsManager.send(userId, message),
@@ -456,6 +481,20 @@ export class GameManager {
         if (room.phaseTimer) {
           clearTimeout(room.phaseTimer);
           room.phaseTimer = undefined;
+        }
+      },
+      scheduleFor: (userId, fn, ms) => {
+        const previous = room.playerPhaseTimers?.get(userId);
+        if (previous) {
+          clearTimeout(previous);
+        }
+        room.playerPhaseTimers?.set(userId, setTimeout(fn, ms));
+      },
+      clearFor: (userId) => {
+        const previous = room.playerPhaseTimers?.get(userId);
+        if (previous) {
+          clearTimeout(previous);
+          room.playerPhaseTimers?.delete(userId);
         }
       },
     };

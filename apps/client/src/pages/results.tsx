@@ -30,7 +30,7 @@ export function ResultsPage() {
 
   return (
     <div className="grid min-h-dvh place-items-center px-6">
-      <div className="w-full max-w-lg rounded-[32px] bg-panel p-10 text-center">
+      <div className="w-full max-w-lg rounded-[32px] bg-secondary p-10 text-center">
         <p className="text-xs font-medium text-red-400">MATCH OVER</p>
         <h1 className="mt-3 font-display text-6xl font-bold tracking-tighter">
           {tied ? "Draw" : won ? "You win" : "Defeat"}
@@ -57,7 +57,7 @@ export function ResultsPage() {
 
         <button
           type="button"
-          className="mt-8 w-full rounded-full bg-red-400 py-5 font-medium text-black"
+          className="mt-8 w-full rounded-full bg-red-400 py-4 font-display font-semibold text-background ring-4 ring-red-400 border-4 border-background text-2xl hover:bg-red-500 hover:ring-red-500 cursor-pointer"
           onClick={() => {
             resetMatch();
             navigate(arenaPath(type, mode));

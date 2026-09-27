@@ -13,61 +13,70 @@ const MEMORIZE_MS = 2500;
 
 export class MindSnapDuel {
   prepare(room: GameRoom) {
-    this.nextRound(room, 0);
+    room.memoryPuzzles = Array.from(
+      { length: room.gameConfig.questionsCount },
+      () => ({
+        size: GRID_SIZE,
+        cells: getMemoryPuzzle(GRID_SIZE),
+      }),
+    );
   }
 
-  publicQuestion(room: GameRoom): PublicQuestion | undefined {
-    const round = room.memoryRound;
-    if (!round || round.kind !== "mind_snap" || !room.currentQuestion) {
+  publicQuestion(room: GameRoom, player: PlayerState): PublicQuestion | undefined {
+    const puzzle = room.memoryPuzzles?.[player.questionIndex];
+    if (!puzzle) {
       return undefined;
     }
-    const lit = round.cells.filter((cell) => cell.value === 1).map((cell) => cell.id);
-    const reveal = round.phase === "memorize";
+    const lit = puzzle.cells
+      .filter((cell) => cell.value === 1)
+      .map((cell) => cell.id);
+    const phase = player.memoryPhase ?? "memorize";
     return {
-      id: room.currentQuestion.id,
-      index: room.currentQuestion.index,
+      id: player.questionIndex,
+      index: player.questionIndex,
       kind: "mind_snap",
       grid: {
-        size: round.size,
-        cells: reveal ? lit : undefined,
+        size: puzzle.size,
+        cells: lit,
         targetCount: lit.length,
       },
-      phase: round.phase,
-      phaseEndsAt: round.phaseEndsAt,
+      phase,
+      phaseEndsAt: player.memoryPhaseEndsAt,
     };
   }
 
-  startPhases(room: GameRoom, ctx: PhaseContext) {
-    const round = room.memoryRound;
-    if (!round || round.kind !== "mind_snap") {
+  startPlayerPhase(room: GameRoom, player: PlayerState, ctx: PhaseContext) {
+    const puzzle = room.memoryPuzzles?.[player.questionIndex];
+    if (!puzzle) {
       return;
     }
-    ctx.clearPhase();
-    round.phase = "memorize";
-    round.submitted = [];
-    round.phaseEndsAt = Date.now() + MEMORIZE_MS;
-    ctx.broadcast({
+    ctx.clearFor(player.userId);
+    player.memoryPhase = "memorize";
+    player.memoryPhaseEndsAt = Date.now() + MEMORIZE_MS;
+    player.memoryStartedAt = Date.now();
+    const index = player.questionIndex;
+    ctx.send(player.userId, {
       type: "QUESTIONS",
-      data: { question: this.publicQuestion(room) },
+      data: { question: this.publicQuestion(room, player) },
     });
-    ctx.schedulePhase(() => {
-      if (room.status !== "PLAYING") {
-        return;
-      }
-      if (!room.memoryRound || room.memoryRound.kind !== "mind_snap") {
-        return;
-      }
-      room.memoryRound.phase = "recall";
-      room.memoryRound.submitted = [];
-      if (room.currentQuestion) {
-        room.currentQuestion.answeredBy = null;
-        room.currentQuestion.startedAt = new Date();
-      }
-      ctx.broadcast({
-        type: "QUESTIONS",
-        data: { question: this.publicQuestion(room) },
-      });
-    }, MEMORIZE_MS);
+    ctx.scheduleFor(
+      player.userId,
+      () => {
+        if (room.status !== "PLAYING") {
+          return;
+        }
+        if (player.questionIndex !== index) {
+          return;
+        }
+        player.memoryPhase = "recall";
+        player.memoryStartedAt = Date.now();
+        ctx.send(player.userId, {
+          type: "QUESTIONS",
+          data: { question: this.publicQuestion(room, player) },
+        });
+      },
+      MEMORIZE_MS,
+    );
   }
 
   answer(
@@ -76,26 +85,26 @@ export class MindSnapDuel {
     answer: GameAnswer,
     questionId: number,
   ): AnswerResult {
-    const round = room.memoryRound;
-    const current = room.currentQuestion;
-    if (!round || round.kind !== "mind_snap" || !current) {
-      return { ok: false, error: "Question not found" };
+    if (player.questionIndex !== questionId) {
+      return { ok: false };
     }
-    if (current.id !== questionId) {
-      return { ok: false, error: "Question not found" };
+    if (player.memoryPhase !== "recall") {
+      return { ok: false };
     }
-    if (round.phase !== "recall") {
-      return { ok: false, error: "Question not found" };
-    }
-    if (round.submitted.includes(player.userId)) {
-      return { ok: false, error: "Question already answered" };
+    if (player.answerQuestionIds.includes(questionId)) {
+      return { ok: false };
     }
     if (!Array.isArray(answer)) {
       return { ok: false };
     }
 
+    const puzzle = room.memoryPuzzles?.[player.questionIndex];
+    if (!puzzle) {
+      return { ok: false };
+    }
+
     const expected = new Set(
-      round.cells.filter((cell) => cell.value === 1).map((cell) => cell.id),
+      puzzle.cells.filter((cell) => cell.value === 1).map((cell) => cell.id),
     );
     const unique = [...new Set(answer)];
     if (unique.length !== expected.size) {
@@ -103,46 +112,20 @@ export class MindSnapDuel {
     }
 
     const correct = unique.filter((id) => expected.has(id)).length;
-    const timeTaken = Math.max(Date.now() - current.startedAt.getTime(), 1);
+    const started = player.memoryStartedAt ?? Date.now();
+    const timeTaken = Math.max(Date.now() - started, 1);
     player.score += correct * generateScore(timeTaken);
     player.answerQuestionIds.push(questionId);
-    player.questionIndex = current.index + 1;
-    round.submitted.push(player.userId);
+    player.questionIndex++;
 
-    const waiting = room.players.some((id) => !round.submitted.includes(id));
-    if (waiting) {
+    if (player.questionIndex >= (room.memoryPuzzles?.length ?? 0)) {
       return { ok: true, scored: true };
     }
 
-    const nextIndex = current.index + 1;
-    if (nextIndex >= room.gameConfig.questionsCount) {
-      return { ok: true, scored: true, finish: true };
-    }
-
-    this.nextRound(room, nextIndex);
     return {
       ok: true,
       scored: true,
-      broadcastNext: true,
-      nextPublic: this.publicQuestion(room),
-    };
-  }
-
-  private nextRound(room: GameRoom, index: number) {
-    const cells = getMemoryPuzzle(GRID_SIZE);
-    room.memoryRound = {
-      kind: "mind_snap",
-      size: GRID_SIZE,
-      cells,
-      phase: "memorize",
-      phaseEndsAt: Date.now() + MEMORIZE_MS,
-      submitted: [],
-    };
-    room.currentQuestion = {
-      id: index,
-      index,
-      answeredBy: null,
-      startedAt: new Date(),
+      restartPlayerPhase: true,
     };
   }
 }
