@@ -12,6 +12,7 @@ import { arenaPath, readGameQuery } from "@/lib/game-params";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { IconX } from "@tabler/icons-react";
 import { Input } from "@/components/ui/input";
+import { ThreeDButton } from "@/components/ui/3d-button";
 
 export function PlaygroundPage() {
   const { roomId } = useParams();
@@ -91,10 +92,10 @@ export function PlaygroundPage() {
 
   return (
     <div className="relative flex min-h-dvh flex-col items-center px-6 pt-10">
-      <button
+      <ThreeDButton
         type="button"
         onClick={() => setTapOut(true)}
-        className="absolute md:top-6 md:right-6 top-24 rounded-full md:rounded-lg md:border-3 md:ring-2 ring-neutral-400 md:border-background md:bg-neutral-400 px-4 py-1 text-xl font-display font-semibold uppercase md:text-background hover:bg-red-400 hover:ring-red-400 cursor-pointer md:size-auto size-8 flex items-center justify-center"
+        className="absolute md:top-6 md:right-6 top-24 bg-red-400 border-red-300 text-secondary cursor-pointer w-fit p-2 md:size-auto size-8 flex items-center justify-center"
       >
         <span className="hidden md:block">
           Tap Out
@@ -102,7 +103,7 @@ export function PlaygroundPage() {
         <span className="block md:hidden">
           <IconX size={16} />
         </span>
-      </button>
+      </ThreeDButton>
       <div className="flex w-full max-w-xl items-start justify-between">
         <PlayerHud
           name={me?.username ?? "You"}

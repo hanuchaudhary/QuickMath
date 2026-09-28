@@ -4,6 +4,8 @@ import { Swords } from "lucide-react";
 import { useAuthStore } from "@/stores/auth.store";
 import { ApiError } from "@/lib/http";
 import { cn } from "@/lib/utils";
+import { ThreeDButton } from "@/components/ui/3d-button";
+import { Input } from "@/components/ui/input";
 
 export function AuthPage() {
   const navigate = useNavigate();
@@ -110,9 +112,10 @@ export function AuthPage() {
 
           <label className="mt-8 block text-xs font-semibold tracking-wide text-white/40 uppercase">
             Email
-            <input
-              className="mt-2 h-12 w-full rounded-2xl border border-white/10 bg-black/30 px-4 text-sm outline-none focus:border-red-400/50"
+            <Input
+              className="mt-2 bg-black/30 py-4 px-4 text-sm outline-none focus:border-red-400/50"
               type="email"
+              placeholder="kushchaudharyog@gmail.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -120,9 +123,10 @@ export function AuthPage() {
           </label>
           <label className="mt-4 block text-xs font-semibold tracking-wide text-white/40 uppercase">
             Password
-            <input
-              className="mt-2 h-12 w-full rounded-2xl border border-white/10 bg-black/30 px-4 text-sm outline-none focus:border-red-400/50"
+            <Input
+              className="mt-2 bg-black/30 py-4 px-4 text-sm outline-none focus:border-red-400/50"
               type="password"
+              placeholder="********"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               minLength={6}
@@ -132,13 +136,13 @@ export function AuthPage() {
 
           {error ? <p className="mt-4 text-sm text-red-400">{error}</p> : null}
 
-          <button
-            className="mt-6 h-12 w-full rounded-2xl bg-red-400 text-sm font-bold text-black press-feedback"
+          <ThreeDButton
+            className="mt-6 bg-red-400 border-red-300 text-secondary cursor-pointer w-full p-2"
             disabled={pending}
             type="submit"
           >
             {pending ? "Hold on..." : mode === "signin" ? "Enter arena" : "Create account"}
-          </button>
+          </ThreeDButton>
         </form>
       </div>
     </div>

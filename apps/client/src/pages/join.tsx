@@ -6,6 +6,7 @@ import { useAuthStore } from "@/stores/auth.store";
 import { useGameStore } from "@/stores/game.store";
 import { X } from "lucide-react";
 import { cn } from "cn";
+import { ThreeDButton } from "@/components/ui/3d-button";
 
 export function JoinRoomPage() {
   const location = useLocation();
@@ -192,17 +193,17 @@ export function JoinRoomPage() {
             </div>
 
             {isHost && !isStarting && (
-              <button
+              <ThreeDButton
                 onClick={() => {
                   stopCustomRoom(room.id);
                   setTimeout(() => {
                     navigate("/compete");
                   });
                 }}
-                className="rounded-full border-2 ring-2 ring-red-400 border-secondary bg-red-400 size-10 flex items-center justify-center text-xl font-bold font-display text-secondary transition-all hover:bg-red-300 hover:ring-red-300 duration-300 cursor-pointer"
+                className="bg-red-400 border-red-300 text-secondary cursor-pointer w-fit p-2"
               >
-                <X className="size-6 stroke-3" />
-              </button>
+                <X className="size-4 stroke-2" />
+              </ThreeDButton>
             )}
           </div>
 
@@ -228,15 +229,15 @@ export function JoinRoomPage() {
               {room.gameConfig.maxPlayersCount} players
             </p>
 
-            <button
+            <ThreeDButton
               onClick={copyLink}
               disabled={isStarting}
-              className="mt-5 rounded-xl border-2 ring-2 ring-white border-secondary bg-white px-6 py-2 text-xl font-bold font-display text-secondary transition-all hover:bg-neutral-300 hover:ring-neutral-300 duration-300 cursor-pointer"
+              className="mt-5 bg-white border-neutral-400 text-secondary cursor-pointer w-fit p-2 px-6"
             >
               {copiedLink
                 ? "COPIED!"
                 : "COPY LINK"}
-            </button>
+            </ThreeDButton>
           </div>
         </div>
 
@@ -273,7 +274,7 @@ export function JoinRoomPage() {
           <button
             disabled={room.players.length < 2}
             onClick={handleStart}
-            className={cn("w-full border rounded-full bg-emerald-400 py-3 px-8 text-xl font-bold font-display text-secondary transition-all hover:bg-emerald-300 duration-300 cursor-pointer disabled:pointer-events-none", room.players.length < 2 && "bg-white text-background", isStarting && "bg-red-400 text hover:bg-red-300", !isHost && room.players.length === 2 && "bg-blue-400 hover:bg-blue-300")}
+            className={cn("w-full border border-b-4 rounded-full bg-emerald-400 py-3 px-8 text-xl font-bold font-display text-secondary transition-all hover:bg-emerald-300 border-emerald-200 hover:border-emerald-100 duration-300 cursor-pointer disabled:pointer-events-none", room.players.length < 2 && "bg-white text-background border-neutral-400", isStarting && "bg-red-400 text-secondary hover:bg-red-300 border-red-300 hover:border-red-200", !isHost && room.players.length === 2 && "bg-blue-400 hover:bg-blue-300 border-blue-200 hover:border-blue-100")}
           >
             {
               isStarting ? (

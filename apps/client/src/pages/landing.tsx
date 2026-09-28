@@ -7,6 +7,8 @@ import { GAME_TYPES } from "@/components/game-types";
 import { GameTypePicker } from "@/components/game-type-picker";
 import { GameModeCards } from "@/components/game-mode-cards";
 import { arenaPath, playPath } from "@/lib/game-params";
+import { ThreeDButton } from "@/components/ui/3d-button";
+import { IconBrandGithubFilled, IconBrandX, IconBrandXFilled } from "@tabler/icons-react";
 
 const MARQUEE = ["ADD", "SUBTRACT", "MULTIPLY", "DIVIDE", "POWERS", "RACE", "DUEL", "FOCUS"];
 
@@ -30,12 +32,19 @@ export function LandingPage() {
               Quick<span className="text-white">Math</span>
             </span>
           </Link>
-          <Link
-            to={playTo}
-            className="rounded-2xl bg-red-400 px-4 py-2 text-sm font-medium text-black press-feedback"
+          <ThreeDButton
+            type="button"
+            onClick={() => {
+              if (!user) {
+                navigate("/auth");
+                return;
+              }
+              navigate(playTo);
+            }}
+            className="bg-red-400 border-red-300 text-secondary py-1 w-fit px-5"
           >
             {user ? "Enter arena" : "Play now"}
-          </Link>
+          </ThreeDButton>
         </div>
       </header>
 
@@ -59,18 +68,27 @@ export function LandingPage() {
             Live 1v1 puzzles. Type the answer, hit first, keep the streak. No calculators. No mercy.
           </p>
           <div className="hero-rise mt-8 flex flex-wrap gap-3" style={{ animationDelay: "240ms" }}>
-            <Link
-              to={playTo}
-              className="rounded-2xl bg-red-400 px-6 py-3 text-sm font-medium text-black press-feedback"
+            <ThreeDButton
+              className="bg-red-400 border-red-300 text-secondary py-2 w-fit px-10"
+              onClick={() => {
+                if (!user) {
+                  navigate("/auth");
+                  return;
+                }
+                navigate(playPath(selectedType, resolveGameMode(selectedType, modes[0])));
+              }}
             >
               Start a duel
-            </Link>
-            <a
-              href="#arena"
-              className="rounded-2xl bg-secondary px-6 py-3 text-sm font-medium text-white/80"
+            </ThreeDButton>
+            <ThreeDButton
+              type="button"
+              className="bg-neutral-600 border-neutral-500 text-white py-2 w-fit px-10"
+              onClick={() => {
+                navigate("#arena");
+              }}
             >
               See games
-            </a>
+            </ThreeDButton>
           </div>
         </div>
       </section>
@@ -86,7 +104,7 @@ export function LandingPage() {
         </div>
       </div>
 
-      <section id="arena" className="mx-auto max-w-6xl py-16">
+      <section id="arena" className="mx-auto max-w-2xl min-h-screen flex flex-col justify-center">
         <p className="mb-3 px-2 text-xs font-medium text-muted-foreground">GAME</p>
         <GameTypePicker types={GAME_TYPES} selectedId={selectedType} onSelect={setSelectedType} />
         <GameModeCards
@@ -103,26 +121,27 @@ export function LandingPage() {
         />
       </section>
 
-      <footer className="border-t border-white/8 px-6 py-10">
+      <footer className="px-6 py-10">
         <div className="mx-auto flex max-w-6xl flex-col gap-8 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="font-display text-4xl font-bold tracking-tighter text-red-400">
               Quick<span className="text-white">Math</span>
             </p>
             <p className="mt-2 max-w-sm text-sm uppercase font-medium text-muted-foreground">
-              Fastest fingers. Cleanest math.
+              Mental math arena
             </p>
           </div>
-          <div className="flex flex-wrap gap-6 text-sm font-medium uppercase text-white/45">
-            <a href="#arena" className="hover:text-white">
-              Games
-            </a>
-            <Link to={playTo} className="hover:text-white">
-              Arena
-            </Link>
-            <Link to="/auth" className="hover:text-white">
-              Sign in
-            </Link>
+          <div className="flex flex-wrap gap-2">
+            <ThreeDButton onClick={() => {
+              // window.open("https://x.com/kushchaudharyog", "_blank");
+            }} className="bg-neutral-400 border-neutral-300 text-background p-2 w-fit rounded-md border border-b-4 cursor-pointer" >
+              <IconBrandXFilled className="size-6" />
+            </ThreeDButton>
+            <ThreeDButton onClick={() => {
+              window.open("https://github.com/hanuchaudhary", "_blank");
+            }} className="bg-neutral-400 border-neutral-300 text-background p-2 w-fit rounded-md border border-b-4 cursor-pointer" >
+              <IconBrandGithubFilled className="size-6" />
+            </ThreeDButton>
           </div>
         </div>
         <p className="mx-auto mt-8 max-w-6xl text-xs text-white/25">
