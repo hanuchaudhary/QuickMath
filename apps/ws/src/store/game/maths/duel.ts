@@ -1,17 +1,15 @@
 import type { GameAnswer, PublicQuestion } from "@quickmath/common";
 import { generateQuiz } from "../../../utils/math";
-import type {
-  AnswerResult,
-  GameRoom,
-  PlayerState,
-} from "../../../utils/types";
+import type { AnswerResult, GameRoom, PlayerState } from "../../../utils/types";
 
 export class SprintDuel {
   prepare(room: GameRoom) {
-    room.questions = generateQuiz(
-      room.gameConfig.questionsCount,
+    const questions = generateQuiz(
+      Math.floor(room.gameConfig.timeLimit / 10) * 3,
       room.gameConfig.difficulty,
     );
+
+    room.questions.push(...questions);
     room.currentQuestion = {
       id: room.questions[0]!.id,
       index: 0,
@@ -20,7 +18,10 @@ export class SprintDuel {
     };
   }
 
-  publicQuestion(room: GameRoom, player: PlayerState): PublicQuestion | undefined {
+  publicQuestion(
+    room: GameRoom,
+    player: PlayerState,
+  ): PublicQuestion | undefined {
     const question = room.questions[player.questionIndex];
     if (!question) {
       return undefined;

@@ -46,6 +46,18 @@ wss.on("connection", (ws, req) => {
         case WsEvent.ForfeitGame:
           gameManager.forfeit(user);
           break;
+        case WsEvent.CreateCustomRoom:
+          gameManager.createCustomRoom(user, payload);
+          break;
+        case WsEvent.JoinCustomRoom:
+          gameManager.joinCustomRoom(user, payload);
+          break;
+        case WsEvent.StartCustomRoom:
+          gameManager.startCustomRoom(user, payload);
+          break;
+        case WsEvent.StopCustomRoom:
+          gameManager.stopCustomRoom(user, payload);
+          break;
       }
     } catch {
       wsManager.send(user.id, {

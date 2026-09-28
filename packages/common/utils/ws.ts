@@ -1,4 +1,5 @@
 import { type GameConfig, type GameMode, type GameType } from "./constants";
+import type { CreateCustomRoomSchema, JoinCustomRoomSchema } from "./validations";
 
 export const WsEvent = {
   PlayGame: "PLAY_GAME",
@@ -16,6 +17,12 @@ export const WsEvent = {
   UserStats: "USER_STATS",
   GameFinished: "GAME_FINISHED",
   Error: "ERROR",
+  CreateCustomRoom: "CREATE_CUSTOM_ROOM",
+  JoinCustomRoom: "JOIN_CUSTOM_ROOM",
+  CustomRoomCreated: "CUSTOM_ROOM_CREATED",
+  UserJoinedCustomRoom: "USER_JOINED_CUSTOM_ROOM",
+  StartCustomRoom: "START_CUSTOM_ROOM",
+  StopCustomRoom: "STOP_CUSTOM_ROOM",
 } as const;
 
 export type WsEvent = (typeof WsEvent)[keyof typeof WsEvent];
@@ -49,6 +56,9 @@ export type PlayerStat = {
 
 export type RoomSnapshot = {
   id: string;
+  hostId?: string;
+  isPrivate: boolean;
+  joinCode?: string;
   gameType: GameType;
   gameMode: GameMode;
   gameConfig: GameConfig;
@@ -70,10 +80,29 @@ export type ClientMessage =
   | {
       type: typeof WsEvent.AnswerQuestion;
       payload: { gameId: string; questionId: number; answer: GameAnswer };
-    };
+    }
+  | {
+      type: typeof WsEvent.CreateCustomRoom;
+      payload: CreateCustomRoomSchema;
+    }
+  | {
+      type: typeof WsEvent.JoinCustomRoom;
+      payload: JoinCustomRoomSchema;
+    }
+  | {
+      type: typeof WsEvent.StartCustomRoom;
+      payload: { roomId: string };
+    }
+  | {
+      type: typeof WsEvent.StopCustomRoom;
+      payload: { roomId: string };
+    }
 
 export type RoomPayload = {
   id: string;
+  hostId?: string;
+  isPrivate?: boolean;
+  joinCode?: string;
   gameType: GameType;
   gameMode: GameMode;
   gameConfig: GameConfig;

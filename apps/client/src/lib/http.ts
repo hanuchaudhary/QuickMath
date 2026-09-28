@@ -117,4 +117,6 @@ export const http = {
         opponents: { id: string; username: string; avatar: string; score: number }[];
       };
     }>(`/api/v1/games/${id}`),
+
+  
 };

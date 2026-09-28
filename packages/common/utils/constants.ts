@@ -15,7 +15,6 @@ export const GameMode = {
   // MEMORY
   MIND_SNAP_DUEL: "MIND_SNAP_DUEL",
   FLASH_ANZAN_DUEL: "FLASH_ANZAN_DUEL",
-
 } as const;
 
 export type GameMode = (typeof GameMode)[keyof typeof GameMode];
@@ -48,15 +47,15 @@ export const DEFAULT_GAME_CONFIG_BY_MODE: Record<GameMode, GameConfig> = {
   [GameMode.DUEL]: SHARED_CONFIG,
   [GameMode.FASTEST_FINGER_FIRST]: {
     ...SHARED_CONFIG,
-    timeLimit: 260,
+    timeLimit: 120,
   },
   [GameMode.MIND_SNAP_DUEL]: {
     ...SHARED_CONFIG,
-    timeLimit: 260,
+    timeLimit: 120,
   },
   [GameMode.FLASH_ANZAN_DUEL]: {
     ...SHARED_CONFIG,
-    timeLimit: 260,
+    timeLimit: 120,
   },
 };
 
@@ -120,7 +119,10 @@ export const GAME_MODE_COPY: Record<
 };
 
 export function gameTitle(gameType: GameType, gameMode: GameMode): string {
-  if (gameType === GameType.MATHS && gameMode === GameMode.FASTEST_FINGER_FIRST) {
+  if (
+    gameType === GameType.MATHS &&
+    gameMode === GameMode.FASTEST_FINGER_FIRST
+  ) {
     return "Fastest Fingers";
   }
   if (gameType === GameType.MATHS && gameMode === GameMode.DUEL) {

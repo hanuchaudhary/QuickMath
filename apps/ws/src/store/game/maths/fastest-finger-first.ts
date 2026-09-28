@@ -10,7 +10,7 @@ import type {
 export class FastestFingerFirst {
   prepare(room: GameRoom) {
     room.questions = generateQuiz(
-      room.gameConfig.questionsCount,
+      Math.floor(room.gameConfig.timeLimit / 10) * 3,
       room.gameConfig.difficulty,
     );
     room.currentQuestion = {

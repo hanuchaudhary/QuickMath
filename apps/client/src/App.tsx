@@ -14,6 +14,10 @@ import { useAuthStore } from "@/stores/auth.store";
 import { useGameStore } from "@/stores/game.store";
 import { playPath } from "@/lib/game-params";
 import { ConfirmDialog } from "@/components/confirm-dialog";
+import { CompetePage } from "./pages/compete";
+import CreateRoomPage from "./pages/create";
+import { JoinRoomPage } from "./pages/join";
+
 
 function Protected({ children }: { children: React.ReactNode }) {
   const user = useAuthStore((s) => s.user);
@@ -34,29 +38,115 @@ function Protected({ children }: { children: React.ReactNode }) {
 }
 
 function MatchNavigator() {
-  const room = useGameStore((s) => s.room);
-  const pendingResume = useGameStore((s) => s.pendingResume);
+  const { room, pendingResume } = useGameStore();
+
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
     if (pendingResume) return;
     if (!room) return;
-    if (room.status === "WAITING" || room.status === "STARTING") {
-      const path = playPath(room.gameType, room.gameMode);
+
+    /*
+     * PRIVATE ROOM
+     */
+    if (room.isPrivate) {
+      if (room.status === "WAITING" || room.status === "STARTING") {
+        const path = `/compete/join?joinCode=${room.joinCode}`;
+
+        if (`${location.pathname}${location.search}` !== path) {
+          navigate(path, { replace: true });
+        }
+
+        return;
+      }
+
+      /*
+       * Once private game actually starts,
+       * use the normal game page.
+       */
+      if (room.status === "PLAYING") {
+        const path = playPath(
+          room.gameType,
+          room.gameMode,
+          room.id
+        );
+
+        if (`${location.pathname}${location.search}` !== path) {
+          navigate(path, { replace: true });
+        }
+
+        return;
+      }
+
+      if (room.status === "FINISHED") {
+        const path = playPath(
+          room.gameType,
+          room.gameMode,
+          room.id,
+          true
+        );
+
+        if (`${location.pathname}${location.search}` !== path) {
+          navigate(path, { replace: true });
+        }
+
+        return;
+      }
+    }
+
+    /*
+     * PUBLIC MATCHMAKING
+     */
+    if (
+      room.status === "WAITING" ||
+      room.status === "STARTING"
+    ) {
+      const path = playPath(
+        room.gameType,
+        room.gameMode
+      );
+
+      if (`${location.pathname}${location.search}` !== path) {
+        navigate(path, { replace: true });
+      }
+
+      return;
+    }
+
+    if (room.status === "PLAYING") {
+      const path = playPath(
+        room.gameType,
+        room.gameMode,
+        room.id
+      );
+
+      if (`${location.pathname}${location.search}` !== path) {
+        navigate(path, { replace: true });
+      }
+
+      return;
+    }
+
+    if (room.status === "FINISHED") {
+      const path = playPath(
+        room.gameType,
+        room.gameMode,
+        room.id,
+        true
+      );
+
       if (`${location.pathname}${location.search}` !== path) {
         navigate(path, { replace: true });
       }
     }
-    if (room.status === "PLAYING") {
-      const path = playPath(room.gameType, room.gameMode, room.id);
-      if (`${location.pathname}${location.search}` !== path) navigate(path, { replace: true });
-    }
-    if (room.status === "FINISHED") {
-      const path = playPath(room.gameType, room.gameMode, room.id, true);
-      if (`${location.pathname}${location.search}` !== path) navigate(path, { replace: true });
-    }
-  }, [location.pathname, location.search, navigate, pendingResume, room]);
+  }, [
+    location.pathname,
+    location.search,
+    navigate,
+    pendingResume,
+    room,
+  ]);
 
   return null;
 }
@@ -75,7 +165,7 @@ function ResumeDuelDialog() {
       body="You dropped mid-match. Jump back in, or tap out and hand the win to your rival."
       confirmLabel="Jump back in"
       cancelLabel="Tap out"
-      onClose={() => {}}
+      onClose={() => { }}
       onCancel={declineResume}
       onConfirm={resumeMatch}
     />
@@ -152,6 +242,30 @@ export default function App() {
           element={
             <Protected>
               <ResultsPage />
+            </Protected>
+          }
+        />
+        <Route
+          path="/compete"
+          element={
+            <Protected>
+              <CompetePage />
+            </Protected>
+          }
+        />
+        <Route
+          path="/compete/create"
+          element={
+            <Protected>
+              <CreateRoomPage />
+            </Protected>
+          }
+        />
+        <Route
+          path="/compete/join"
+          element={
+            <Protected>
+              <JoinRoomPage />
             </Protected>
           }
         />

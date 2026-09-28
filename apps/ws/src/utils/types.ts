@@ -62,6 +62,11 @@ export type GameRoom = {
   gameType: GameType;
   gameMode: GameMode;
   gameConfig: GameConfig;
+
+  hostId: string;
+  isPrivate: boolean;
+  joinCode?: string;
+
   players: string[];
   status: RoomStatus;
   questions: Question[];

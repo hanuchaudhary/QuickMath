@@ -4,9 +4,11 @@ import {
   isGameType,
   resolveGameMode,
   WsEvent,
+  type CreateCustomRoomSchema,
   type GameAnswer,
   type GameMode,
   type GameType,
+  type JoinCustomRoomSchema,
   type RawStat,
   type RoomPayload,
 } from "@quickmath/common";
@@ -15,9 +17,10 @@ import type { RoomManager } from "./room.manager";
 import type { UserManager } from "./user.manager";
 import type { WsManager } from "./ws.manager";
 import { getHandler } from "./game/handlers";
+import { generateJoinCode } from "../utils/lib";
 
 const START_DELAY_MS = 3000;
-const FINISH_GC_MS = 60_000;
+const FINISH_GC_MS = 1000 * 60
 
 function emptyPlayer(userId: string): PlayerState {
   return {
@@ -34,6 +37,136 @@ export class GameManager {
     private userManager: UserManager,
     private wsManager: WsManager,
   ) {}
+
+  createCustomRoom(user: User, payload: CreateCustomRoomSchema) {
+    const { gameType, gameMode, gameConfig } = payload;
+    const room: GameRoom = {
+      hostId: user.id,
+      isPrivate: true,
+      joinCode: generateJoinCode(),
+      id: crypto.randomUUID(),
+      gameType,
+      gameMode,
+      gameConfig: {
+        difficulty: gameConfig.difficulty,
+        maxPlayersCount: gameConfig.maxPlayers,
+        questionsCount: 0,
+        timeLimit: gameConfig.timeLimit,
+      },
+      players: [user.id],
+      status: "WAITING",
+      questions: [],
+    };
+
+    this.roomManager.createRoom(room);
+    this.roomManager.setPlayerState(room.id, emptyPlayer(user.id));
+    this.wsManager.send(user.id, {
+      type: WsEvent.CustomRoomCreated,
+      data: this.roomPayload(room),
+    });
+  }
+  joinCustomRoom(user: User, payload: JoinCustomRoomSchema) {
+    const { joinCode } = payload;
+    const room = this.roomManager
+      .getRooms()
+      .find((room) => room.joinCode === joinCode);
+    if (!room) {
+      this.wsManager.send(user.id, {
+        type: WsEvent.Error,
+        payload: "Room not found",
+      });
+      return;
+    }
+    if (room.gameConfig.maxPlayersCount <= room.players.length) {
+      this.wsManager.send(user.id, {
+        type: WsEvent.Error,
+        payload: "Room is full",
+      });
+      return;
+    }
+    if (room.players.includes(user.id)) {
+      this.wsManager.send(user.id, {
+        type: WsEvent.Error,
+        payload: "You are already in this room",
+      });
+      return;
+    }
+    room.players.push(user.id);
+    this.roomManager.setPlayerState(room.id, emptyPlayer(user.id));
+    this.wsManager.broadcast(room.players, {
+      type: WsEvent.UserJoinedCustomRoom,
+      data: this.roomPayload(room),
+    });
+    return;
+  }
+
+  startCustomRoom(user: User, payload: { roomId: string }) {
+    const { roomId } = payload;
+
+    const room = this.roomManager.getRoom(roomId);
+
+    if (!room) {
+      this.wsManager.send(user.id, {
+        type: WsEvent.Error,
+        payload: "Room not found",
+      });
+
+      return;
+    }
+
+    if (room.hostId !== user.id) {
+      this.wsManager.send(user.id, {
+        type: WsEvent.Error,
+        payload: "You are not the host of this room",
+      });
+
+      return;
+    }
+
+    if (room.status !== "WAITING") {
+      this.wsManager.send(user.id, {
+        type: WsEvent.Error,
+        payload: "Room is not waiting",
+      });
+
+      return;
+    }
+
+    if (room.players.length < 2) {
+      this.wsManager.send(user.id, {
+        type: WsEvent.Error,
+        payload: "Need at least 2 players",
+      });
+
+      return;
+    }
+
+    this.beginMatch(room, room.gameType, room.gameMode);
+  }
+
+  stopCustomRoom(user: User, payload: { roomId: string }) {
+    const { roomId } = payload;
+    const room = this.roomManager.getRoom(roomId);
+    if (!room) {
+      this.wsManager.send(user.id, {
+        type: WsEvent.Error,
+        payload: "Room not found",
+      });
+      return;
+    }
+    if (room.hostId !== user.id) {
+      this.wsManager.send(user.id, {
+        type: WsEvent.Error,
+        payload: "You are not the host of this room",
+      });
+      return;
+    }
+    this.finishGame(room);
+    this.wsManager.send(user.id, {
+      type: WsEvent.StopCustomRoom,
+      data: this.roomPayload(room),
+    });
+  }
 
   play(user: User, gameType: unknown, gameMode: unknown) {
     const existing = this.roomManager.getRoomByUser(user.id);
@@ -84,6 +217,7 @@ export class GameManager {
       .getRooms()
       .filter(
         (room) =>
+          !room.isPrivate &&
           room.gameType === gameType &&
           room.gameMode === mode &&
           room.status === "WAITING" &&
@@ -109,6 +243,9 @@ export class GameManager {
     }
 
     const room: GameRoom = {
+      hostId: user.id,
+      isPrivate: false,
+      joinCode: undefined,
       id: crypto.randomUUID(),
       gameType,
       gameMode: mode,
@@ -413,6 +550,7 @@ export class GameManager {
 
     room.startTimer = setTimeout(() => {
       if (room.status !== "STARTING") {
+        console.log("not starting");
         return;
       }
       this.startPlaying(room, handler);
@@ -423,6 +561,7 @@ export class GameManager {
     room: GameRoom,
     handler: NonNullable<ReturnType<typeof getHandler>>,
   ) {
+    console.log("start playing");
     room.status = "PLAYING";
     room.startedAt = Date.now();
     room.endedAt = room.startedAt + room.gameConfig.timeLimit * 1000;
@@ -517,6 +656,9 @@ export class GameManager {
       id: room.id,
       gameType: room.gameType,
       gameMode: room.gameMode,
+      isPrivate: room.isPrivate,
+      joinCode: room.joinCode,
+      hostId: room.hostId,
       gameConfig: room.gameConfig,
       players: room.players
         .map((id) => this.userManager.getUser(id))

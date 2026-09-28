@@ -25,7 +25,9 @@ export function serializeGame(
   userId: string,
 ) {
   const me = game.players.find((p) => p.user?.id === userId);
-  const opponents = game.players.filter((p) => p.user?.id && p.user.id !== userId);
+  const opponents = game.players.filter(
+    (p) => p.user?.id && p.user.id !== userId,
+  );
 
   return {
     id: game.id,

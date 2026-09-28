@@ -9,13 +9,8 @@ import { arenaPath, playPath, readGameQuery } from "@/lib/game-params";
 export function MatchmakingPage() {
   const location = useLocation();
   const navigate = useNavigate();
-  const user = useAuthStore((s) => s.user);
-  const room = useGameStore((s) => s.room);
-  const joinQueue = useGameStore((s) => s.joinQueue);
-  const leaveQueue = useGameStore((s) => s.leaveQueue);
-  const connected = useGameStore((s) => s.connected);
-  const hydrated = useGameStore((s) => s.hydrated);
-  const pendingResume = useGameStore((s) => s.pendingResume);
+  const { user } = useAuthStore();
+  const { joinQueue, leaveQueue, connected, hydrated, pendingResume, room } = useGameStore();
   const [countdown, setCountdown] = useState<number | null>(null);
   const { hasGame, type: gameType, mode: resolvedMode } = readGameQuery(location.search);
 

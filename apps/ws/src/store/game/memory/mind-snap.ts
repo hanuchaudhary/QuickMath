@@ -14,15 +14,20 @@ const MEMORIZE_MS = 2500;
 export class MindSnapDuel {
   prepare(room: GameRoom) {
     room.memoryPuzzles = Array.from(
-      { length: room.gameConfig.questionsCount },
+      { length: Math.floor(room.gameConfig.timeLimit / 10) * 2 }, 
       () => ({
         size: GRID_SIZE,
         cells: getMemoryPuzzle(GRID_SIZE),
       }),
     );
+    console.log("gameConfig", room);
+    console.log("memoryPuzzles", room.memoryPuzzles.length);
   }
 
-  publicQuestion(room: GameRoom, player: PlayerState): PublicQuestion | undefined {
+  publicQuestion(
+    room: GameRoom,
+    player: PlayerState,
+  ): PublicQuestion | undefined {
     const puzzle = room.memoryPuzzles?.[player.questionIndex];
     if (!puzzle) {
       return undefined;

@@ -45,6 +45,8 @@ type GameState = {
   answer: (value: GameAnswer) => void;
   clearError: () => void;
   resetMatch: () => void;
+  startCustomRoom: (roomId: string) => void;
+  stopCustomRoom: (roomId: string) => void;
 };
 
 function applyRoom(
@@ -67,7 +69,7 @@ function applyMessage(
     case WsEvent.UserJoinedGameRoom:
     case WsEvent.GameReady:
       set({
-        room: applyRoom(message.data),
+        room: applyRoom(message.data as RoomSnapshot),
         winnerId: null,
         error: null,
         hydrated: true,
@@ -76,7 +78,7 @@ function applyMessage(
       break;
     case WsEvent.GameClose:
       set({
-        room: applyRoom(message.data),
+        room: applyRoom(message.data as RoomSnapshot),
         winnerId: null,
         error: null,
         question: null,
@@ -85,7 +87,7 @@ function applyMessage(
       break;
     case WsEvent.GameStarting:
       set({
-        room: applyRoom(message.data, { status: "PLAYING" }),
+        room: applyRoom(message.data as RoomSnapshot, { status: "PLAYING" }),
         winnerId: null,
         error: null,
         hydrated: true,
@@ -142,8 +144,7 @@ function applyMessage(
 
       set({
         room,
-        winnerId:
-          room.status === "FINISHED" ? winnerIdFromStats(stats) : null,
+        winnerId: room.status === "FINISHED" ? winnerIdFromStats(stats) : null,
         error: null,
         stats,
         question,
@@ -153,6 +154,52 @@ function applyMessage(
       });
       break;
     }
+
+    case WsEvent.CustomRoomCreated:
+      set({
+        room: applyRoom(message.data),
+        winnerId: null,
+        error: null,
+        hydrated: true,
+        pendingResume: null,
+      });
+      break;
+    case WsEvent.JoinCustomRoom:
+      set({
+        room: applyRoom(message.data),
+        winnerId: null,
+        error: null,
+        hydrated: true,
+        pendingResume: null,
+      });
+      break;
+    case WsEvent.UserJoinedCustomRoom:
+      set({
+        room: applyRoom(message.data),
+        winnerId: null,
+        error: null,
+        hydrated: true,
+        pendingResume: null,
+      });
+      break;
+    case WsEvent.StartCustomRoom:
+      set({
+        room: applyRoom(message.data),
+        winnerId: null,
+        error: null,
+        hydrated: true,
+        pendingResume: null,
+      });
+      break;
+    case WsEvent.StopCustomRoom:
+      set({
+        room: null,
+        winnerId: null,
+        error: null,
+        hydrated: true,
+        pendingResume: null,
+      });
+      break;
     case WsEvent.Error:
       set({
         error: message.payload,
@@ -287,6 +334,16 @@ export const useGameStore = create<GameState>((set, get) => ({
         set({ lastShakeAt: Date.now() });
       }
     }, 120);
+  },
+  startCustomRoom: (roomId: string) => {
+    get().socket?.send(
+      JSON.stringify({ type: WsEvent.StartCustomRoom, payload: { roomId } }),
+    );
+  },
+  stopCustomRoom: (roomId: string) => {
+    get().socket?.send(
+      JSON.stringify({ type: WsEvent.StopCustomRoom, payload: { roomId } }),
+    );
   },
   clearError: () => set({ error: null }),
   resetMatch: () =>

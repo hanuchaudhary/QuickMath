@@ -17,8 +17,8 @@ import { cn } from "@/lib/utils";
 
 const NAV = [
   { to: "/arena", label: "Arena", icon: Zap, live: true },
+  { to: "/compete", label: "Compete", icon: Swords, live: true },
   { to: "#quests", label: "Quests", icon: Trophy, live: false },
-  { to: "#compete", label: "Compete", icon: Swords, live: false },
   { to: "#feed", label: "Feed", icon: Bell, live: false },
   { to: "#group", label: "Group Play", icon: Users, live: false },
   { to: "#more", label: "More", icon: MoreHorizontal, live: false },
