@@ -6,6 +6,7 @@ import { UserAvatar } from "@/components/user-avatar";
 import { NavStats } from "@/components/nav-stats";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { ApiError, http } from "@/lib/http";
+import { ThreeDButton } from "@/components/ui/3d-button";
 
 export function ProfilePage() {
   const { username: routeName } = useParams();
@@ -102,17 +103,17 @@ export function ProfilePage() {
                 </div>
               </div>
               {isOwner ? (
-                <button
+                <ThreeDButton
                   type="button"
-                  className="rounded-2xl bg-white/8 px-5 py-2 text-sm"
+                  className="bg-neutral-600 border-neutral-500 text-white py-2 w-fit px-10"
                   onClick={() => setConfirmLogout(true)}
                 >
                   Log out
-                </button>
+                </ThreeDButton>
               ) : (
                 <Link
                   to="/arena"
-                  className="rounded-2xl bg-white/8 px-5 py-2 text-sm"
+                  className="bg-neutral-600 border-neutral-500 text-white py-2 w-full"
                 >
                   Challenge
                 </Link>

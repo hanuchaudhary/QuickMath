@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { arenaPath, readGameQuery } from "@/lib/game-params";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { IconX } from "@tabler/icons-react";
+import { Input } from "@/components/ui/input";
 
 export function PlaygroundPage() {
   const { roomId } = useParams();
@@ -96,7 +97,7 @@ export function PlaygroundPage() {
         className="absolute md:top-6 md:right-6 top-24 rounded-full md:rounded-lg md:border-3 md:ring-2 ring-neutral-400 md:border-background md:bg-neutral-400 px-4 py-1 text-xl font-display font-semibold uppercase md:text-background hover:bg-red-400 hover:ring-red-400 cursor-pointer md:size-auto size-8 flex items-center justify-center"
       >
         <span className="hidden md:block">
-        Tap Out
+          Tap Out
         </span>
         <span className="block md:hidden">
           <IconX size={16} />
@@ -110,7 +111,7 @@ export function PlaygroundPage() {
           align="left"
           isMe={me?.id === user?.id}
         />
-        <div className="rounded-full bg-[#123] px-4 py-1 font-mono text-lg tabular-nums text-cyan shadow-[0_0_24px_rgba(34,211,238,0.35)]">
+        <div className="rounded-lg bg-background px-4 py-1 font-display text-2xl font-bold tracking-[0.15em] text-white border border-b-4 border-neutral-700">
           {minutes}:{seconds}
         </div>
         <PlayerHud
@@ -149,19 +150,17 @@ export function PlaygroundPage() {
 
       {!memory ? (
         <div className="mt-auto mb-16 w-full max-w-md text-center">
-          <p className="mb-3 text-sm font-medium text-muted-foreground">
-            TYPE YOUR ANSWER
-          </p>
-          <input
+          <Input
             autoFocus
             value={value}
+            placeholder="TYPE YOUR ANSWER"
             onChange={(e) => {
               const next = e.target.value.replace(/[^\d-]/g, "");
               setValue(next);
               submitIfCorrect(next);
             }}
             className={cn(
-              "h-14 w-full rounded-2xl border border-white/10 bg-[#2a2a2a] text-center font-mono text-2xl tabular-nums outline-none focus:border-white/25",
+              "h-14 w-full rounded-lg border border-b-4 border-neutral-700 bg-background px-4 font-display text-2xl font-bold tracking-[0.15em] text-white outline-none placeholder:text-muted-foreground focus:border-emerald-400 placeholder:text-center text-center",
               lastShakeAt ? "shake" : "",
             )}
             key={lastShakeAt}

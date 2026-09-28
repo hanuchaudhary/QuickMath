@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { ArrowLeft } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -9,6 +8,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { BackButton } from "@/components/ui/back";
+import { ThreeDButton } from "@/components/ui/3d-button";
 
 import { GameType, useGameStore } from "@/stores/game.store";
 
@@ -33,18 +34,20 @@ function OptionSelect({
     return (
         <Select
             value={value}
-            onValueChange={(value) => onChange(value ?? "")}
+            onValueChange={(value) =>
+                onChange(value ?? "")
+            }
         >
-            <SelectTrigger className="h-15.5 w-62.5 rounded-2xl border-2 border-b-4 border-neutral-600 bg-transparent px-4 text-lg font-medium text-white focus:ring-0 focus-visible:border-red-400 [&_svg]:size-5 [&_svg]:text-white [&_svg]:opacity-100">
+            <SelectTrigger className="w-full rounded-lg border py-5 border-b-4 border-neutral-700 bg-background px-4 font-display text-base font-bold text-white focus:border-red-400 focus:ring-0 [&_svg]:size-5 [&_svg]:text-white">
                 <SelectValue />
             </SelectTrigger>
 
-            <SelectContent className="rounded-xl border-2 border-neutral-600 bg-neutral-900 text-white">
+            <SelectContent className="rounded-lg border p-2 border-neutral-700 bg-secondary text-white">
                 {options.map((option) => (
                     <SelectItem
                         key={option}
                         value={option}
-                        className="py-3 text-base focus:bg-neutral-800 focus:text-white"
+                        className="py-3 font-display text-base font-bold focus:bg-white/10 focus:text-white"
                     >
                         {option}
                     </SelectItem>
@@ -59,7 +62,6 @@ type StepperProps = {
     step?: number;
     min?: number;
     max?: number;
-    label?: string;
     onChange: (value: number) => void;
 };
 
@@ -68,81 +70,75 @@ function Stepper({
     step = 1,
     min = 0,
     max = Infinity,
-    label,
     onChange,
 }: StepperProps) {
     const clamp = (n: number) =>
         Math.min(max, Math.max(min, n));
 
     return (
-        <div className="flex flex-col items-center gap-2">
-            <div className="flex h-14 w-50 items-center overflow-hidden rounded-xl border-2 border-neutral-700 bg-neutral-900">
-                <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={() => onChange(clamp(value - step))}
-                    className="h-full w-14 rounded-none text-xl font-semibold text-white hover:bg-neutral-800 hover:text-white"
-                >
-                    -
-                </Button>
+        <div className="flex h-10 w-full overflow-hidden rounded-lg border py-5 border-b-4 border-neutral-700 bg-background">
+            <Button
+                type="button"
+                variant="ghost"
+                onClick={() =>
+                    onChange(clamp(value - step))
+                }
+                className="h-full w-10 rounded-none text-xl font-bold text-white hover:bg-secondary cursor-pointer hover:text-white"
+            >
+                -
+            </Button>
 
-                <span className="flex-1 text-center text-lg font-semibold text-white">
-                    {value}
-                </span>
+            <span className="flex flex-1 items-center justify-center font-display text-xl font-bold">
+                {value}
+            </span>
 
-                <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={() => onChange(clamp(value + step))}
-                    className="h-full w-14 rounded-none text-xl font-semibold text-red-400 hover:bg-neutral-800 hover:text-red-400"
-                >
-                    +
-                </Button>
-            </div>
-
-            {label && (
-                <span className="text-sm font-semibold text-red-400">
-                    {label}
-                </span>
-            )}
+            <Button
+                type="button"
+                variant="ghost"
+                onClick={() =>
+                    onChange(clamp(value + step))
+                }
+                className="h-full w-14 rounded-none text-xl font-bold text-red-400 hover:bg-white/10 hover:text-red-300"
+            >
+                +
+            </Button>
         </div>
     );
 }
 
-type RowProps = {
-    title: string;
+type ConfigFieldProps = {
+    label: string;
     children: React.ReactNode;
 };
 
-function Row({ title, children }: RowProps) {
+function ConfigField({
+    label,
+    children,
+}: ConfigFieldProps) {
     return (
-        <div className="flex items-start justify-between py-2">
-            <span className="pt-3 text-xl font-semibold text-white">
-                {title}
-            </span>
+        <div className="space-y-2">
+            <p className="text-xs font-semibold text-muted-foreground pl-1">
+                {label}
+            </p>
 
-            <div className="flex items-start gap-3">
-                {children}
-            </div>
+            {children}
         </div>
     );
 }
 
 export default function CreateRoomPage() {
-    const [config, setConfig] = useState<CreateCustomRoomSchema>({
-        gameType: GameType.MATHS,
-        gameMode: GameMode.DUEL,
-        gameConfig: {
-            difficulty: "medium",
-            timeLimit: 2,
-            maxPlayers: 2,
-        },
-    });
-
-    const [joinCode, setJoinCode] = useState("");
-    const [joinedPlayers, setJoinedPlayers] = useState<string[]>([]);
-
     const { socket } = useGameStore();
+
+    const [config, setConfig] =
+        useState<CreateCustomRoomSchema>({
+            gameType: GameType.MATHS,
+            gameMode: GameMode.DUEL,
+            gameConfig: {
+                difficulty: "medium",
+                timeLimit: 2,
+                maxPlayers: 2,
+            },
+        });
 
     const availableModes =
         GAME_MODES_BY_TYPE[config.gameType];
@@ -177,9 +173,12 @@ export default function CreateRoomPage() {
                     gameType: config.gameType,
                     gameMode: config.gameMode,
                     gameConfig: {
-                        difficulty: config.gameConfig.difficulty,
-                        timeLimit: config.gameConfig.timeLimit * 60,
-                        maxPlayers: config.gameConfig.maxPlayers,
+                        difficulty:
+                            config.gameConfig.difficulty,
+                        timeLimit:
+                            config.gameConfig.timeLimit * 60,
+                        maxPlayers:
+                            config.gameConfig.maxPlayers,
                     },
                 },
             }),
@@ -187,67 +186,84 @@ export default function CreateRoomPage() {
     };
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-background font-sans text-foreground">
-            <main className="flex flex-1 justify-center px-6 py-6">
-                <div className="flex w-full max-w-3xl flex-col">
-                    <header className="mb-4 flex items-center gap-4">
-                        <Button
-                            type="button"
-                            variant="outline"
-                            size="icon"
-                            className="h-12 w-12 rounded-xl border-2 border-b-4 border-neutral-600 bg-transparent text-white hover:border-neutral-400 hover:bg-transparent hover:text-white"
-                        >
-                            <ArrowLeft className="h-5 w-5" />
-                        </Button>
+        <div className="min-h-dvh bg-background px-6 py-8 text-white">
+            <div className="mx-auto max-w-3xl">
+                <header>
+                    <BackButton to="/compete" />
 
-                        <h1 className="text-3xl font-bold">
-                            Create a Room
+                    <div className="mt-8">
+                        <h1 className="mt-1 font-display text-5xl font-bold">
+                            Create Your Game
                         </h1>
-                    </header>
 
-                    <section className="flex-1">
-                        <Row title="Game Type">
+                        <p className="font-medium text-sm text-muted-foreground">
+                            Choose how you want to compete.
+                        </p>
+                    </div>
+                </header>
+
+                <section className="mt-8">
+                    <div className="space-y-4 mb-4">
+                        <ConfigField label="GAME TYPE">
                             <OptionSelect
                                 value={config.gameType}
                                 options={Object.values(GameType)}
-                                onChange={handleGameTypeChange}
+                                onChange={
+                                    handleGameTypeChange
+                                }
                             />
-                        </Row>
+                        </ConfigField>
 
-                        <Row title="Game Mode">
+                        <ConfigField label="GAME MODE">
                             <OptionSelect
                                 value={config.gameMode}
                                 options={availableModes}
                                 onChange={(value) =>
                                     setConfig((prev) => ({
                                         ...prev,
-                                        gameMode: value as GameMode,
+                                        gameMode:
+                                            value as GameMode,
                                     }))
                                 }
                             />
-                        </Row>
+                        </ConfigField>
+                    </div>
 
-                        <Row title="Time Duration (in minutes)">
-                            <Stepper
-                                value={config.gameConfig.timeLimit}
-                                min={1}
-                                max={60}
-                                onChange={(value) =>
-                                    setConfig((prev) => ({
-                                        ...prev,
-                                        gameConfig: {
-                                            ...prev.gameConfig,
-                                            timeLimit: value,
-                                        },
-                                    }))
-                                }
-                            />
-                        </Row>
+                    <div className="grid gap-4 md:grid-cols-3">
+                        <ConfigField label="TIME DURATION (MINUTES)">
+                            <div>
+                                <Stepper
+                                    value={
+                                        config.gameConfig
+                                            .timeLimit
+                                    }
+                                    min={1}
+                                    max={60}
+                                    onChange={(value) =>
+                                        setConfig((prev) => ({
+                                            ...prev,
+                                            gameConfig: {
+                                                ...prev.gameConfig,
+                                                timeLimit:
+                                                    value,
+                                            },
+                                        }))
+                                    }
+                                />
+                            </div>
+                        </ConfigField>
 
-                        <Row title="Difficulty">
+                        <ConfigField label="DIFFICULTY">
                             <OptionSelect
-                                value={config.gameConfig.difficulty}
-                                options={["easy", "medium", "hard"]}
+                                value={
+                                    config.gameConfig
+                                        .difficulty
+                                }
+                                options={[
+                                    "easy",
+                                    "medium",
+                                    "hard",
+                                ]}
                                 onChange={(value) =>
                                     setConfig((prev) => ({
                                         ...prev,
@@ -259,45 +275,38 @@ export default function CreateRoomPage() {
                                     }))
                                 }
                             />
-                        </Row>
+                        </ConfigField>
+                        <ConfigField label="MAX PLAYERS">
+                            <div className="max-w-sm">
+                                <Stepper
+                                    value={
+                                        config.gameConfig
+                                            .maxPlayers
+                                    }
+                                    min={2}
+                                    max={8}
+                                    onChange={(value) =>
+                                        setConfig((prev) => ({
+                                            ...prev,
+                                            gameConfig: {
+                                                ...prev.gameConfig,
+                                                maxPlayers:
+                                                    value,
+                                            },
+                                        }))
+                                    }
+                                />
+                            </div>
+                        </ConfigField>
+                    </div>
+                </section>
 
-                        <Row title="Max Players">
-                            <Stepper
-                                value={config.gameConfig.maxPlayers}
-                                min={2}
-                                max={8}
-                                onChange={(value) =>
-                                    setConfig((prev) => ({
-                                        ...prev,
-                                        gameConfig: {
-                                            ...prev.gameConfig,
-                                            maxPlayers: value,
-                                        },
-                                    }))
-                                }
-                            />
-                        </Row>
-                    </section>
-
-                    <footer className="mt-8">
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={handleCreate}
-                            className="h-16 w-full rounded-2xl border-2 border-b-4 border-red-400 bg-red-400 text-lg font-bold uppercase tracking-wide text-white hover:bg-red-400 hover:text-white"
-                        >
-                            Create Room
-                        </Button>
-                    </footer>
-                </div>
-
-                <div>
-                    <p>Join Code: {joinCode}</p>
-                </div>
-            </main>
-
-            <div>
-                Players: {joinedPlayers.length}
+                <ThreeDButton
+                    onClick={handleCreate}
+                    className="mt-6 h-16"
+                >
+                    CREATE ROOM
+                </ThreeDButton>
             </div>
         </div>
     );

@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { ThreeDButton } from "./ui/3d-button";
 
 type ConfirmDialogProps = {
   open: boolean;
@@ -46,23 +47,13 @@ export function ConfirmDialog({
           {title}
         </h2>
         <p className="mt-3 text-sm text-muted-foreground">{body}</p>
-        <div className="mt-6 flex justify-end gap-3">
-          <button
-            type="button"
-            className="rounded-2xl bg-white/8 px-5 py-2 text-sm"
-            onClick={cancel}
-          >
+        <div className="mt-6 grid grid-cols-2 gap-3">
+          <ThreeDButton type="button" className="bg-neutral-600 border-neutral-500 text-white py-2 w-full" onClick={cancel}>
             {cancelLabel}
-          </button>
-          <button
-            type="button"
-            className={cn(
-              "rounded-2xl bg-red-400 px-5 py-2 text-sm font-bold text-black",
-            )}
-            onClick={onConfirm}
-          >
+          </ThreeDButton>
+          <ThreeDButton type="button" className="bg-red-400 border-red-300 text-secondary py-2 w-full" onClick={onConfirm}>
             {confirmLabel}
-          </button>
+          </ThreeDButton>
         </div>
       </div>
     </div>

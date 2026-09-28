@@ -3,6 +3,7 @@ import { UserAvatar } from "@/components/user-avatar";
 import { useAuthStore } from "@/stores/auth.store";
 import { useGameStore } from "@/stores/game.store";
 import { arenaPath, readGameQuery } from "@/lib/game-params";
+import { ThreeDButton } from "@/components/ui/3d-button";
 
 export function ResultsPage() {
   const { roomId } = useParams();
@@ -55,16 +56,16 @@ export function ResultsPage() {
           })}
         </div>
 
-        <button
+        <ThreeDButton
           type="button"
-          className="mt-8 w-full rounded-full bg-red-400 py-4 font-display font-semibold text-background ring-4 ring-red-400 border-4 border-background text-2xl hover:bg-red-500 hover:ring-red-500 cursor-pointer"
+          className="mt-8 bg-red-400 border-red-300 text-secondary py-2 w-full"
           onClick={() => {
             resetMatch();
             navigate(arenaPath(type, mode));
           }}
         >
           Back to arena
-        </button>
+        </ThreeDButton>
       </div>
     </div>
   );

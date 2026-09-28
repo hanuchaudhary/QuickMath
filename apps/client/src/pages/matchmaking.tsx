@@ -5,6 +5,7 @@ import { UserAvatar } from "@/components/user-avatar";
 import { useAuthStore } from "@/stores/auth.store";
 import { useGameStore } from "@/stores/game.store";
 import { arenaPath, playPath, readGameQuery } from "@/lib/game-params";
+import { ThreeDButton } from "@/components/ui/3d-button";
 
 export function MatchmakingPage() {
   const location = useLocation();
@@ -90,16 +91,16 @@ export function MatchmakingPage() {
           </div>
         </div>
 
-        <button
+        <ThreeDButton
           type="button"
-          className="mt-10 rounded-2xl bg-white/8 px-5 py-2 text-sm"
+          className="mt-10 bg-neutral-600 border-neutral-500 text-white py-2 w-fit px-10"
           onClick={() => {
             leaveQueue();
             navigate(arenaPath(gameType, resolvedMode));
           }}
         >
           Cancel
-        </button>
+        </ThreeDButton>
       </div>
     </div>
   );

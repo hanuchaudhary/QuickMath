@@ -4,6 +4,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { UserAvatar } from "@/components/user-avatar";
 import { useAuthStore } from "@/stores/auth.store";
 import { useGameStore } from "@/stores/game.store";
+import { X } from "lucide-react";
+import { cn } from "cn";
 
 export function JoinRoomPage() {
   const location = useLocation();
@@ -162,52 +164,66 @@ export function JoinRoomPage() {
   const isStarting = room.status === "STARTING";
 
   return (
-    <div className="min-h-dvh bg-background px-6 py-8 text-white">
+    <div className="min-h-dvh bg-background px-6 py-8 text-white relative">
       <div className="mx-auto max-w-3xl">
         <div className="rounded-3xl bg-secondary p-8">
-          {/* Header */}
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-xs font-semibold tracking-[0.25em] text-white/40">
-                PRIVATE ROOM
-              </p>
-
-              <h1 className="mt-2 text-2xl font-bold">
-                {room.gameType}
+              <h1>
+                Configuration:
+              </h1>
+              <h1 className="text-2xl font-semibold flex flex-wrap gap-2">
+                <span>
+                  {room.gameType}
+                </span>
+                <span className="text-muted-foreground">
+                  {room.gameMode}
+                </span>
+                <span>
+                  {room.gameConfig.timeLimit / 60}m
+                </span>
+                <span className="text-muted-foreground">
+                  {room.gameConfig.difficulty}
+                </span>
+                <span>
+                  {room.gameConfig.maxPlayersCount} PLAYERS
+                </span>
               </h1>
             </div>
 
             {isHost && !isStarting && (
               <button
-                onClick={() =>
-                  stopCustomRoom(room.id)
-                }
-                className="rounded-xl border border-red-400/30 bg-red-400/10 px-4 py-2 text-sm font-bold text-red-400 transition hover:bg-red-400/20"
+                onClick={() => {
+                  stopCustomRoom(room.id);
+                  setTimeout(() => {
+                    navigate("/compete");
+                  });
+                }}
+                className="rounded-full border-2 ring-2 ring-red-400 border-secondary bg-red-400 size-10 flex items-center justify-center text-xl font-bold font-display text-secondary transition-all hover:bg-red-300 hover:ring-red-300 duration-300 cursor-pointer"
               >
-                STOP ROOM
+                <X className="size-6 stroke-3" />
               </button>
             )}
           </div>
 
-          {/* Room Code */}
           <div className="mt-8 text-center">
-            <p className="text-xs font-semibold tracking-[0.25em] text-white/40">
+            <p className="text-sm font-medium text-muted-foreground">
               ROOM CODE
             </p>
 
             <button
               onClick={copyCode}
               disabled={isStarting}
-              className="mt-2 rounded-xl px-4 py-2 transition hover:bg-white/5 disabled:pointer-events-none"
+              className="mt-2 rounded-xl px-4 py-2 transition hover:bg-white/5 disabled:pointer-events-none cursor-pointer"
             >
-              <p className="font-display text-6xl font-bold tracking-widest">
+              <p className="font-display text-6xl font-bold tracking-widest text-red-400">
                 {copiedCode
                   ? "COPIED!"
                   : room.joinCode}
               </p>
             </button>
 
-            <p className="mt-2 text-sm text-white/40">
+            <p className="mt-2 text-sm text-muted-foreground font-display">
               {room.players.length}/
               {room.gameConfig.maxPlayersCount} players
             </p>
@@ -215,40 +231,20 @@ export function JoinRoomPage() {
             <button
               onClick={copyLink}
               disabled={isStarting}
-              className="mt-5 rounded-xl bg-white px-5 py-2 text-sm font-bold text-black transition hover:bg-white/90 disabled:opacity-50"
+              className="mt-5 rounded-xl border-2 ring-2 ring-white border-secondary bg-white px-6 py-2 text-xl font-bold font-display text-secondary transition-all hover:bg-neutral-300 hover:ring-neutral-300 duration-300 cursor-pointer"
             >
               {copiedLink
                 ? "COPIED!"
                 : "COPY LINK"}
             </button>
           </div>
-
-          {/* Game Info */}
-          <div className="mt-6 flex flex-wrap justify-center gap-2">
-            <span className="rounded-full bg-white/10 px-4 py-2 text-sm">
-              {room.gameType}
-            </span>
-
-            <span className="rounded-full bg-white/10 px-4 py-2 text-sm">
-              {room.gameMode}
-            </span>
-
-            <span className="rounded-full bg-white/10 px-4 py-2 text-sm">
-              {room.gameConfig.timeLimit}s
-            </span>
-
-            <span className="rounded-full bg-white/10 px-4 py-2 text-sm">
-              {room.gameConfig.difficulty}
-            </span>
-          </div>
         </div>
 
-        {/* Players */}
         <div className="mt-5 space-y-2">
           {room.players.map((player) => (
             <div
               key={player.id}
-              className="flex items-center justify-between rounded-2xl border border-white/10 bg-secondary p-4"
+              className="flex items-center justify-between rounded-full border border-white/10 bg-secondary p-2"
             >
               <div className="flex items-center gap-3">
                 <UserAvatar
@@ -257,7 +253,7 @@ export function JoinRoomPage() {
                   size="md"
                 />
 
-                <span>
+                <span className="font-display text-xl">
                   {player.id === user?.id
                     ? "You"
                     : player.username}
@@ -265,7 +261,7 @@ export function JoinRoomPage() {
               </div>
 
               {player.id === room.hostId && (
-                <span className="rounded-md border border-green-400 px-2 py-1 text-xs text-green-400">
+                <span className="rounded-full px-5 py-2 text-xl text-secondary bg-emerald-400 font-display">
                   HOST
                 </span>
               )}
@@ -273,35 +269,25 @@ export function JoinRoomPage() {
           ))}
         </div>
 
-        {/* Action */}
-        <div className="mt-8">
-          {isStarting ? (
-            <div className="flex h-20 items-center justify-center rounded-2xl bg-white/5">
-              <div className="text-center">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/40">
-                  Game starting
-                </p>
-
-                <p className="mt-1 text-4xl font-black text-red-400">
+        <div className="mt-8 absolute bottom-20 left-1/2 -translate-x-1/2">
+          <button
+            disabled={room.players.length < 2}
+            onClick={handleStart}
+            className={cn("w-full border rounded-full bg-emerald-400 py-3 px-8 text-xl font-bold font-display text-secondary transition-all hover:bg-emerald-300 duration-300 cursor-pointer disabled:pointer-events-none", room.players.length < 2 && "bg-white text-background", isStarting && "bg-red-400 text hover:bg-red-300", !isHost && room.players.length === 2 && "bg-blue-400 hover:bg-blue-300")}
+          >
+            {
+              isStarting ? (
+                <span className="font-display text-6xl font-bold tracking-widest text-secondary">
                   {countdown ?? 1}
-                </p>
-              </div>
-            </div>
-          ) : isHost ? (
-            <button
-              disabled={room.players.length < 2}
-              onClick={handleStart}
-              className="w-full rounded-2xl bg-green-500 py-4 font-bold text-black transition hover:bg-green-400 disabled:bg-white/5 disabled:text-white/30"
-            >
-              {room.players.length < 2
-                ? "NEED 2 PLAYERS"
-                : "START GAME"}
-            </button>
-          ) : (
-            <div className="rounded-2xl bg-white/5 py-4 text-center text-sm text-white/40">
-              Waiting for host to start...
-            </div>
-          )}
+                </span>
+              ) :
+                isHost ?
+                  room.players.length < 2
+                    ? `NEED ${room.gameConfig.maxPlayersCount - room.players.length} MORE PLAYERS`
+                    : "START GAME"
+                  : "WAITING FOR HOST TO START"
+            }
+          </button>
         </div>
       </div>
     </div>
