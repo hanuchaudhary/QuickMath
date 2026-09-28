@@ -20,8 +20,8 @@ export function LandingPage() {
 
   return (
     <div className="min-h-dvh bg-background text-foreground">
-      <header className="fixed inset-x-0 top-0 z-20 border-b border-white/5 bg-background/80 backdrop-blur-md">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
+      <header className="fixed inset-x-0 top-0 z-20 ">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
             <span className="grid size-8 place-items-center rounded-full bg-red-400 text-black">
               <Swords className="size-4" />
@@ -30,14 +30,6 @@ export function LandingPage() {
               Quick<span className="text-white">Math</span>
             </span>
           </Link>
-          <nav className="hidden items-center gap-8 text-sm font-medium uppercase text-white/60 sm:flex">
-            <a href="#arena" className="hover:text-white">
-              Games
-            </a>
-            <Link to={playTo} className="hover:text-white">
-              Arena
-            </Link>
-          </nav>
           <Link
             to={playTo}
             className="rounded-2xl bg-red-400 px-4 py-2 text-sm font-medium text-black press-feedback"
@@ -47,8 +39,8 @@ export function LandingPage() {
         </div>
       </header>
 
-      <section className="px-6 pt-28 pb-16">
-        <div className="mx-auto max-w-6xl">
+      <section className="min-h-[calc(100dvh-4rem)] flex items-center max-w-6xl mx-auto">
+        <div className="">
           <p className="hero-rise text-sm font-medium text-red-400 uppercase">
             Mental math arena
           </p>
