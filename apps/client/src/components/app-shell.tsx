@@ -1,11 +1,9 @@
 import { useState } from "react";
-import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   Bell,
   Menu,
   MoreHorizontal,
-  PanelLeft,
-  PanelLeftClose,
   Swords,
   Trophy,
   Users,
@@ -82,11 +80,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Swords className="size-6" />
           </span>
           {!compact ? (
-            <span className="font-display text-4xl font-bold tracking-tighter text-red-400">
+            <Link to={"/arena?game=math"} className="font-display text-4xl font-bold tracking-tighter text-red-400">
               Quick<span className="text-white">
                 Math
               </span>
-            </span>
+            </Link>
           ) : null}
           <button
             type="button"

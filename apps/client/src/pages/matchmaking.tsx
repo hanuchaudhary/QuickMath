@@ -57,7 +57,7 @@ export function MatchmakingPage() {
 
   return (
     <div className="grid min-h-dvh place-items-center px-6">
-      <div className="w-full max-w-lg rounded-[32px] bg-panel p-10 text-center">
+      <div className="w-full max-w-lg rounded-[32px] bg-secondary p-10 text-center">
         <p className="text-sm font-medium text-red-400">{gameType ?? "GAME"}</p>
         <h1 className="mt-3 font-display text-6xl font-bold tracking-tighter">{title}</h1>
         <p className="mt-2 text-sm text-white/40">
