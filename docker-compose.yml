@@ -1,7 +1,7 @@
 services:
   postgres:
     image: postgres
-    container_name: matix-postgres
+    container_name: quickmath-postgres
     restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
@@ -14,7 +14,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: matix-redis
+    container_name: quickmath-redis
     restart: unless-stopped
     ports:
       - "6379:6379"
