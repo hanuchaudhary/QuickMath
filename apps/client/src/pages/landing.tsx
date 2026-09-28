@@ -19,8 +19,8 @@ export function LandingPage() {
   const playTo = user ? arenaPath(selectedType) : "/auth";
 
   return (
-    <div className="min-h-dvh bg-background text-foreground">
-      <header className="fixed inset-x-0 top-0 z-20 ">
+    <div className="min-h-dvh bg-background text-foreground px-4">
+      <header className="fixed inset-x-0 top-0 z-20 px-4">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
             <span className="grid size-8 place-items-center rounded-full bg-red-400 text-black">
@@ -86,7 +86,7 @@ export function LandingPage() {
         </div>
       </div>
 
-      <section id="arena" className="mx-auto max-w-6xl px-6 py-16">
+      <section id="arena" className="mx-auto max-w-6xl py-16">
         <p className="mb-3 px-2 text-xs font-medium text-muted-foreground">GAME</p>
         <GameTypePicker types={GAME_TYPES} selectedId={selectedType} onSelect={setSelectedType} />
         <GameModeCards

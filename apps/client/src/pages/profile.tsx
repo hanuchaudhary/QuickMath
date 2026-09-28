@@ -65,8 +65,8 @@ export function ProfilePage() {
   }
 
   return (
-    <div className="grid min-h-dvh grid-cols-6 px-8 py-6">
-      <div className="col-span-4 min-w-0 px-16">
+    <div className="md:grid min-h-dvh grid-cols-6 md:px-8 py-6">
+      <div className="col-span-4 min-w-0 md:px-16 px-4">
         {missing ? (
           <div className="mt-10 rounded-3xl bg-secondary p-8">
             <p className="text-sm font-medium text-red-400">PROFILE</p>
