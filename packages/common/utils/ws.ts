@@ -1,5 +1,8 @@
 import { type GameConfig, type GameMode, type GameType } from "./constants";
-import type { CreateCustomRoomSchema, JoinCustomRoomSchema } from "./validations";
+import type {
+  CreateCustomRoomSchema,
+  JoinCustomRoomSchema,
+} from "./validations";
 
 export const WsEvent = {
   PlayGame: "PLAY_GAME",
@@ -96,7 +99,7 @@ export type ClientMessage =
   | {
       type: typeof WsEvent.StopCustomRoom;
       payload: { roomId: string };
-    }
+    };
 
 export type RoomPayload = {
   id: string;
@@ -139,7 +142,14 @@ export type ServerMessage =
       type: typeof WsEvent.GameFinished;
       data: { roomId: string; stats: RawStat[]; winnerId?: string | null };
     }
-  | { type: typeof WsEvent.Error; payload: string };
+  | { type: typeof WsEvent.Error; payload: string }
+  | { type: typeof WsEvent.CustomRoomCreated; data: RoomSnapshot }
+  | { type: typeof WsEvent.UserJoinedCustomRoom; data: RoomSnapshot }
+  | { type: typeof WsEvent.StopCustomRoom; data: { roomId: string } }
+  | { type: typeof WsEvent.StartCustomRoom; data: RoomSnapshot }
+  | { type: typeof WsEvent.JoinCustomRoom; data: RoomSnapshot }
+  | { type: typeof WsEvent.CreateCustomRoom; data: RoomSnapshot }
+  | { type: typeof WsEvent.StartCustomRoom; data: RoomSnapshot };
 
 export function toPublicQuestion(question: PublicQuestion): PublicQuestion {
   return question;

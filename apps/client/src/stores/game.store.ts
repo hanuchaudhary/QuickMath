@@ -124,7 +124,7 @@ function applyMessage(
     }
     case WsEvent.GameReconnected: {
       const stats = toPlayerStats(message.data.stats ?? []);
-      const room = applyRoom(message.data);
+      const room = applyRoom(message.data as RoomSnapshot);
       const question = message.data.question
         ? toPublicQuestion(message.data.question)
         : null;
@@ -156,13 +156,15 @@ function applyMessage(
     }
 
     case WsEvent.CustomRoomCreated:
-      set({
-        room: applyRoom(message.data),
-        winnerId: null,
-        error: null,
-        hydrated: true,
-        pendingResume: null,
-      });
+      {
+        set({
+          room: applyRoom(message.data),
+          winnerId: null,
+          error: null,
+          hydrated: true,
+          pendingResume: null,
+        });
+      }
       break;
     case WsEvent.JoinCustomRoom:
       set({
