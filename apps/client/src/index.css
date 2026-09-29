@@ -8,7 +8,8 @@
 @theme inline {
     --font-heading: var(--font-display);
     --font-display: "Bebas Neue", sans-serif;
-    --font-sans: "Roboto", sans-serif;
+    --font-sans: "Montserrat", sans-serif;
+    --font-serif: "Nunito Sans", serif;
     --font-mono: "IBM Plex Mono", ui-monospace, monospace;
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
@@ -182,4 +183,8 @@
   &::-webkit-scrollbar {
     display: none;
   }
+}
+
+.subheading{
+  @apply font-sans text-[11px] uppercase text-muted-foreground font-medium;
 }

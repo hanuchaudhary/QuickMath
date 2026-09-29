@@ -26,6 +26,13 @@ export const WsEvent = {
   UserJoinedCustomRoom: "USER_JOINED_CUSTOM_ROOM",
   StartCustomRoom: "START_CUSTOM_ROOM",
   StopCustomRoom: "STOP_CUSTOM_ROOM",
+  
+  ChallengeUser: "CHALLENGE_USER",
+  ChallengeReceived: "CHALLENGE_RECEIVED",
+  AcceptChallenge: "ACCEPT_CHALLENGE",
+  DeclineChallenge: "DECLINE_CHALLENGE",
+  ChallengeAccepted: "CHALLENGE_ACCEPTED",
+  ChallengeDeclined: "CHALLENGE_DECLINED",
 } as const;
 
 export type WsEvent = (typeof WsEvent)[keyof typeof WsEvent];
@@ -142,7 +149,7 @@ export type ServerMessage =
       type: typeof WsEvent.GameFinished;
       data: { roomId: string; stats: RawStat[]; winnerId?: string | null };
     }
-  | { type: typeof WsEvent.Error; payload: string }
+  | { type: typeof WsEvent.Error; data: string }
   | { type: typeof WsEvent.CustomRoomCreated; data: RoomSnapshot }
   | { type: typeof WsEvent.UserJoinedCustomRoom; data: RoomSnapshot }
   | { type: typeof WsEvent.StopCustomRoom; data: { roomId: string } }
@@ -170,3 +177,14 @@ export function winnerIdFromStats(stats: PlayerStat[]): string | null {
   if (leaders.length !== 1) return null;
   return leaders[0]!.userId;
 }
+
+export type RoomChallenge = {
+  id: string;
+  challenger: PublicUser;
+  challenged: PublicUser;
+  gameType: GameType;
+  gameMode: GameMode;
+  createdAt: Date;
+  acceptedAt?: Date;
+  declinedAt?: Date;
+};

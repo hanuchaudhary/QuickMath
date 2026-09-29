@@ -58,6 +58,15 @@ wss.on("connection", (ws, req) => {
         case WsEvent.StopCustomRoom:
           gameManager.stopCustomRoom(user, payload);
           break;
+        case WsEvent.ChallengeUser:
+          gameManager.challengeUser(user, payload);
+          break;
+        case WsEvent.AcceptChallenge:
+          gameManager.acceptChallenge(user, payload);
+          break;
+        case WsEvent.DeclineChallenge:
+          gameManager.declineChallenge(user, payload);
+          break;
       }
     } catch {
       wsManager.send(user.id, {

@@ -124,9 +124,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 className={({ isActive }) =>
                   cn(
                     itemClass,
-                    "font-medium",
+                    "font-semibold",
                     isActive
-                      ? "border-4 border-background bg-secondary/30 text-red-400 ring-2 ring-red-400"
+                      ? "border-4 font-bold border-background bg-secondary/30 text-red-400 ring-2 ring-red-400"
                       : "text-white/55 hover:bg-white/5 hover:text-white",
                   )
                 }

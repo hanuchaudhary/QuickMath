@@ -115,7 +115,10 @@ export type PhaseContext = {
 
 export interface GameModeHandler {
   prepare(room: GameRoom): void;
-  publicQuestion(room: GameRoom, player: PlayerState): PublicQuestion | undefined;
+  publicQuestion(
+    room: GameRoom,
+    player: PlayerState,
+  ): PublicQuestion | undefined;
   answer(
     room: GameRoom,
     player: PlayerState,

@@ -17,6 +17,8 @@ import { ConfirmDialog } from "@/components/confirm-dialog";
 import { CompetePage } from "./pages/compete";
 import CreateRoomPage from "./pages/create";
 import { JoinRoomPage } from "./pages/join";
+import { ChallengePopover } from "./components/challange-popover";
+import { Toaster } from "sonner";
 
 
 function Protected({ children }: { children: React.ReactNode }) {
@@ -46,10 +48,6 @@ function MatchNavigator() {
   useEffect(() => {
     if (pendingResume) return;
     if (!room) return;
-
-    /*
-     * PRIVATE ROOM
-     */
     if (room.isPrivate) {
       if (room.status === "WAITING" || room.status === "STARTING") {
         const path = `/compete/join?joinCode=${room.joinCode}`;
@@ -61,10 +59,6 @@ function MatchNavigator() {
         return;
       }
 
-      /*
-       * Once private game actually starts,
-       * use the normal game page.
-       */
       if (room.status === "PLAYING") {
         const path = playPath(
           room.gameType,
@@ -95,9 +89,6 @@ function MatchNavigator() {
       }
     }
 
-    /*
-     * PUBLIC MATCHMAKING
-     */
     if (
       room.status === "WAITING" ||
       room.status === "STARTING"
@@ -192,84 +183,105 @@ function Boot() {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Boot />
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/auth" element={<AuthPage />} />
-        <Route
-          path="/arena"
-          element={
-            <Protected>
-              <ArenaPage />
-            </Protected>
-          }
+    <main className="relative">
+
+      <BrowserRouter>
+        <Boot />
+        <ChallengePopover />
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/auth" element={<AuthPage />} />
+          <Route
+            path="/arena"
+            element={
+              <Protected>
+                <ArenaPage />
+              </Protected>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <Protected>
+                <OwnProfileRedirect />
+              </Protected>
+            }
+          />
+          <Route
+            path="/profile/:username"
+            element={
+              <Protected>
+                <ProfilePage />
+              </Protected>
+            }
+          />
+          <Route
+            path="/play"
+            element={
+              <Protected>
+                <MatchmakingPage />
+              </Protected>
+            }
+          />
+          <Route
+            path="/play/:roomId"
+            element={
+              <Protected>
+                <PlaygroundPage />
+              </Protected>
+            }
+          />
+          <Route
+            path="/play/:roomId/results"
+            element={
+              <Protected>
+                <ResultsPage />
+              </Protected>
+            }
+          />
+          <Route
+            path="/compete"
+            element={
+              <Protected>
+                <CompetePage />
+              </Protected>
+            }
+          />
+          <Route
+            path="/compete/create"
+            element={
+              <Protected>
+                <CreateRoomPage />
+              </Protected>
+            }
+          />
+          <Route
+            path="/compete/join"
+            element={
+              <Protected>
+                <JoinRoomPage />
+              </Protected>
+            }
+          />
+        </Routes>
+        <Toaster toastOptions={{
+          style: {
+            backgroundColor: "var(--background)",
+            color: "var(--text)",
+            borderRadius: "20px",
+            border: "1px solid var(--secondary)",
+            borderBottom: "6px solid var(--secondary)",
+            fontFamily: "var(--font-display)",
+            fontSize: "16px",
+            lineHeight: 1,
+          },
+          classNames: {
+            closeButton: "size-6! bg-secondary! border-border! border-b-4! rounded-sm! text-white! stroke-4!",
+          },
+          closeButton: true,
+        }}
         />
-        <Route
-          path="/profile"
-          element={
-            <Protected>
-              <OwnProfileRedirect />
-            </Protected>
-          }
-        />
-        <Route
-          path="/profile/:username"
-          element={
-            <Protected>
-              <ProfilePage />
-            </Protected>
-          }
-        />
-        <Route
-          path="/play"
-          element={
-            <Protected>
-              <MatchmakingPage />
-            </Protected>
-          }
-        />
-        <Route
-          path="/play/:roomId"
-          element={
-            <Protected>
-              <PlaygroundPage />
-            </Protected>
-          }
-        />
-        <Route
-          path="/play/:roomId/results"
-          element={
-            <Protected>
-              <ResultsPage />
-            </Protected>
-          }
-        />
-        <Route
-          path="/compete"
-          element={
-            <Protected>
-              <CompetePage />
-            </Protected>
-          }
-        />
-        <Route
-          path="/compete/create"
-          element={
-            <Protected>
-              <CreateRoomPage />
-            </Protected>
-          }
-        />
-        <Route
-          path="/compete/join"
-          element={
-            <Protected>
-              <JoinRoomPage />
-            </Protected>
-          }
-        />
-      </Routes>
-    </BrowserRouter>
+      </BrowserRouter>
+    </main>
   );
 }

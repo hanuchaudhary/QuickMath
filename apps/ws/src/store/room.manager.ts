@@ -1,9 +1,31 @@
+import type { RoomChallenge } from "@quickmath/common";
 import type { GameRoom, PlayerState } from "../utils/types";
 
 export class RoomManager {
   private rooms: Map<string, GameRoom> = new Map();
   private roomStates: Map<string, Map<string, PlayerState>> = new Map();
   private userRooms: Map<string, string> = new Map();
+  private roomChallenges: Map<string, RoomChallenge> = new Map();
+
+  addChallenge(challenge: RoomChallenge) {
+    this.roomChallenges.set(challenge.id, challenge);
+  }
+
+  getChallengeByChallengedId(challengedId: string) {
+    return Array.from(this.roomChallenges.values()).find(
+      (challenge) =>
+        challenge.challenged.id === challengedId &&
+        challenge.createdAt > new Date(Date.now() - 1000 * 15),
+    );
+  }
+
+  getChallengeById(id: string) {
+    return this.roomChallenges.get(id);
+  }
+
+  removeChallenge(id: string) {
+    this.roomChallenges.delete(id);
+  }
 
   createRoom(room: GameRoom) {
     this.rooms.set(room.id, room);

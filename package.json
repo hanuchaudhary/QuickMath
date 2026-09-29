@@ -25,5 +25,9 @@
   "workspaces": [
     "apps/*",
     "packages/*"
-  ]
+  ],
+  "dependencies": {
+    "motion": "^13.4.5",
+    "sonner": "^2.0.8"
+  }
 }

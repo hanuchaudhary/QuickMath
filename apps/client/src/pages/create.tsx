@@ -196,7 +196,7 @@ export default function CreateRoomPage() {
                             Create Your Game
                         </h1>
 
-                        <p className="font-medium text-sm text-muted-foreground">
+                        <p className="subheading text-xs! font-semibold">
                             Choose how you want to compete.
                         </p>
                     </div>

@@ -1,4 +1,5 @@
 import {
+  DEFAULT_GAME_CONFIG_BY_MODE,
   GAME_MODES_BY_TYPE,
   getGameConfig,
   isGameType,
@@ -10,6 +11,7 @@ import {
   type GameType,
   type JoinCustomRoomSchema,
   type RawStat,
+  type RoomChallenge,
   type RoomPayload,
 } from "@quickmath/common";
 import type { GameRoom, PhaseContext, PlayerState, User } from "../utils/types";
@@ -20,7 +22,7 @@ import { getHandler } from "./game/handlers";
 import { generateJoinCode } from "../utils/lib";
 
 const START_DELAY_MS = 3000;
-const FINISH_GC_MS = 1000 * 60
+const FINISH_GC_MS = 1000 * 60;
 
 function emptyPlayer(userId: string): PlayerState {
   return {
@@ -37,6 +39,142 @@ export class GameManager {
     private userManager: UserManager,
     private wsManager: WsManager,
   ) {}
+
+  challengeUser(
+    challenger: User,
+    payload: { challengedId: string; gameType: GameType; gameMode: GameMode },
+  ) {
+    const { challengedId, gameType, gameMode } = payload;
+
+    const existingChallenge =
+      this.roomManager.getChallengeByChallengedId(challengedId);
+
+    // if (existingChallenge?.challenger.id === challenger.id) {
+    //   this.wsManager.send(challenger.id, {
+    //     type: WsEvent.Error,
+    //     data: "You have already challenged this user",
+    //   });
+    //   return;
+    // }
+
+    if (
+      existingChallenge &&
+      existingChallenge.createdAt > new Date(Date.now() - 1000 * 15)
+    ) {
+      this.wsManager.send(challenger.id, {
+        type: WsEvent.Error,
+        data: "You have already challenged this user in the last 15 seconds",
+      });
+      return;
+    }
+
+    const challenged = this.userManager.getUser(challengedId);
+    if (!challenged) {
+      this.wsManager.send(challenger.id, {
+        type: WsEvent.Error,
+        payload: "Challenged user not found",
+      });
+      return;
+    }
+    const challenge: RoomChallenge = {
+      id: crypto.randomUUID(),
+      challenger,
+      challenged,
+      gameType,
+      gameMode,
+      createdAt: new Date(Date.now()),
+    };
+    this.roomManager.addChallenge(challenge);
+    this.wsManager.send(challenged.id, {
+      type: WsEvent.ChallengeReceived,
+      data: {
+        ...challenge,
+      },
+    });
+    this.wsManager.send(challenger.id, {
+      type: WsEvent.ChallengeUser,
+      data: {
+        ...challenge,
+      },
+    });
+  }
+
+  acceptChallenge(challenged: User, payload: { challengeId: string }) {
+    const { challengeId } = payload;
+    const challenge = this.roomManager.getChallengeById(challengeId);
+    if (!challenge) {
+      this.wsManager.send(challenged.id, {
+        type: WsEvent.Error,
+        payload: "Challenge not found",
+      });
+      return;
+    }
+
+    if (challenge.challenged.id !== challenged.id) {
+      this.wsManager.send(challenged.id, {
+        type: WsEvent.Error,
+        payload: "You are not the challenged user",
+      });
+      return;
+    }
+
+    if (challenge.createdAt < new Date(Date.now() - 1000 * 15)) {
+      this.roomManager.removeChallenge(challengeId);
+      this.wsManager.send(challenged.id, {
+        type: WsEvent.Error,
+        payload: "Challenge expired",
+      });
+      return;
+    }
+
+    if (challenge.acceptedAt) {
+      this.roomManager.removeChallenge(challengeId);
+      this.wsManager.send(challenged.id, {
+        type: WsEvent.ChallengeAccepted,
+        data: { challengeId },
+      });
+    }
+
+    const privateRoom: GameRoom = {
+      id: crypto.randomUUID(),
+      gameType: challenge.gameType,
+      gameMode: challenge.gameMode,
+      players: [challenged.id, challenge.challenger.id],
+      status: "WAITING",
+      questions: [],
+      gameConfig: DEFAULT_GAME_CONFIG_BY_MODE[challenge.gameMode],
+      hostId: challenge.challenger.id,
+      isPrivate: true,
+      joinCode: generateJoinCode(),
+    };
+
+    this.createCustomRoom(challenge.challenger as User, {
+      gameType: challenge.gameType,
+      gameMode: challenge.gameMode,
+      gameConfig: {
+        difficulty: DEFAULT_GAME_CONFIG_BY_MODE[challenge.gameMode].difficulty,
+        maxPlayers: 2,
+        timeLimit: DEFAULT_GAME_CONFIG_BY_MODE[challenge.gameMode].timeLimit,
+      },
+    });
+  }
+
+  declineChallenge(challenged: User, payload: { challengerId: string }) {
+    const { challengerId } = payload;
+    const challenger = this.userManager.getUser(challengerId);
+    if (!challenger) {
+      this.wsManager.send(challenged.id, {
+        type: WsEvent.Error,
+        payload: "Challenger not found",
+      });
+      return;
+    }
+
+    this.wsManager.send(challenger.id, {
+      type: WsEvent.ChallengeDeclined,
+      data: { challengedId: challenged.id },
+    });
+  }
 
   createCustomRoom(user: User, payload: CreateCustomRoomSchema) {
     const { gameType, gameMode, gameConfig } = payload;

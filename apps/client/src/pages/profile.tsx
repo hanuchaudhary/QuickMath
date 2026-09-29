@@ -1,44 +1,42 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { gameTitle, isGameType, resolveGameMode } from "@quickmath/common";
 import { useAuthStore } from "@/stores/auth.store";
 import { UserAvatar } from "@/components/user-avatar";
 import { NavStats } from "@/components/nav-stats";
 import { ConfirmDialog } from "@/components/confirm-dialog";
-import { ApiError, http } from "@/lib/http";
+import { http } from "@/lib/http";
 import { ThreeDButton } from "@/components/ui/3d-button";
+import { useGameStore } from "@/stores/game.store";
 
 export function ProfilePage() {
   const { username: routeName } = useParams();
   const navigate = useNavigate();
-  const { user: me, setUser, logout } = useAuthStore();
+  const { user: me, logout } = useAuthStore();
 
   const [profile, setProfile] = useState<{
     id: string;
     username: string;
-    avatar: string;
+    avatar?: string;
     email?: string;
   } | null>(null);
-  const [avatar, setAvatar] = useState("");
-  const [message, setMessage] = useState("");
   const [missing, setMissing] = useState(false);
   const [stats, setStats] = useState({ gamesPlayed: 0, wins: 0, totalScore: 0 });
   const [games, setGames] = useState<
     Awaited<ReturnType<typeof http.getProfile>>["games"]
   >([]);
   const [confirmLogout, setConfirmLogout] = useState(false);
+  const { connected, challengeUser } = useGameStore()
 
   const isOwner = Boolean(me && profile && me.id === profile.id);
 
   useEffect(() => {
     if (!routeName) return;
     setMissing(false);
-    setMessage("");
     void http
       .getProfile(routeName)
       .then((res) => {
         setProfile(res.user);
-        setAvatar(res.user.avatar);
         setStats(res.stats);
         setGames(res.games);
       })
@@ -48,26 +46,19 @@ export function ProfilePage() {
       });
   }, [routeName]);
 
-  async function save(event: React.FormEvent) {
-    event.preventDefault();
-    if (!isOwner) return;
-    setMessage("");
-    try {
-      const { user: next } = await http.updateMe({ avatar });
-      setUser(next);
-      setProfile({ ...next });
-      setMessage("Saved");
-      if (next.username !== routeName) {
-        navigate(`/profile/${next.username}`, { replace: true });
-      }
-    } catch (err) {
-      setMessage(err instanceof ApiError ? err.message : "Could not save");
+  const handleChallenge = () => {
+    if (!profile) return;
+    if (connected) {
+      challengeUser(profile.id, "MATHS", "DUELS");
+
+    } else {
+      navigate("/arena");
     }
   }
 
   return (
     <div className="md:grid min-h-dvh grid-cols-6 md:px-8 py-6">
-      <div className="col-span-4 min-w-0 md:px-16 px-4">
+      <div className="col-span-4 min-w-0 md:px-16 px-4 relative">
         {missing ? (
           <div className="mt-10 rounded-3xl bg-secondary p-8">
             <p className="text-sm font-medium text-red-400">PROFILE</p>
@@ -92,12 +83,12 @@ export function ProfilePage() {
                 <div>
                   {
                     !isOwner &&
-                    <p className="text-sm font-medium text-red-400">PLAYER</p>
+                    <p className="subheading text-xs! font-semibold text-red-400">PLAYER</p>
                   }
                   <h1 className="font-display text-5xl font-bold tracking-tighter sm:text-6xl">
                     {profile?.username ?? routeName}
                   </h1>
-                  <p className="mt-1 text-sm text-muted-foreground">
+                  <p className="subheading text-xs! font-semibold!">
                     {isOwner && profile?.email ? profile.email : `@${profile?.username ?? routeName}`}
                   </p>
                 </div>
@@ -111,12 +102,13 @@ export function ProfilePage() {
                   Log out
                 </ThreeDButton>
               ) : (
-                <Link
-                  to="/arena"
-                  className="bg-neutral-600 border-neutral-500 text-white py-2 w-full"
+                <ThreeDButton
+                  type="button"
+                  className="bg-neutral-600 border-neutral-500 text-white py-2 w-fit px-10"
+                  onClick={handleChallenge}
                 >
                   Challenge
-                </Link>
+                </ThreeDButton>
               )}
             </div>
 
@@ -126,27 +118,7 @@ export function ProfilePage() {
               <Stat label="Score" value={stats.totalScore} />
             </div>
 
-            {isOwner ? (
-              <form onSubmit={save} className="mt-5 rounded-3xl bg-secondary p-6">
-                <label className="mt-4 block text-xs font-semibold tracking-wide text-white/40 uppercase">
-                  Avatar URL
-                  <input
-                    className="mt-2 h-11 w-full rounded-2xl border border-white/10 bg-black/30 px-4 text-sm outline-none focus:border-red-400/50"
-                    value={avatar}
-                    onChange={(e) => setAvatar(e.target.value)}
-                  />
-                </label>
-                <button
-                  className="mt-5 rounded-2xl bg-red-400 px-5 py-2 text-sm font-bold text-black"
-                  type="submit"
-                >
-                  Save
-                </button>
-                {message ? <p className="mt-3 text-sm text-white/50">{message}</p> : null}
-              </form>
-            ) : null}
-
-            <p className="mt-8 mb-3 px-2 text-xs font-medium text-muted-foreground">
+            <p className="mt-8 mb-3 px-2 subheading text-xs! font-semibold!">
               MATCH HISTORY
             </p>
             <div className="space-y-3">
@@ -161,7 +133,7 @@ export function ProfilePage() {
                         ? gameTitle(game.type, resolveGameMode(game.type, game.mode))
                         : game.type}
                     </p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="subheading text-xs! font-semibold!">
                       vs {game.opponents.map((o) => o.username).join(", ") || "—"}
                     </p>
                   </div>
@@ -195,7 +167,7 @@ export function ProfilePage() {
 function Stat({ label, value }: { label: string; value: number }) {
   return (
     <div className="rounded-3xl bg-secondary p-5">
-      <p className="text-xs tracking-wide text-white/40 uppercase">{label}</p>
+      <p className="subheading text-xs! font-semibold!">{label}</p>
       <p className="mt-2 font-display text-4xl tracking-tighter">{value}</p>
     </div>
   );

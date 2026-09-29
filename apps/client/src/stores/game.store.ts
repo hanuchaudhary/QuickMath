@@ -13,6 +13,7 @@ import {
   type PublicUser,
   type RoomSnapshot,
   type ServerMessage,
+  type RoomChallenge,
 } from "@quickmath/common";
 
 const WS_URL = import.meta.env.VITE_WS_URL ?? "ws://localhost:8080";
@@ -35,6 +36,19 @@ type GameState = {
   error: string | null;
   lastShakeAt: number;
   pendingResume: ResumeOffer | null;
+
+  challenges: RoomChallenge[];
+
+  challengeUser: (
+    challengedId: string,
+    gameType: GameType,
+    gameMode: GameMode,
+  ) => void;
+  acceptChallenge: (challengeId: string) => void;
+  removeChallenge: (challengeId: string) => void;
+  declineChallenge: (challengeId: string) => void;
+  clearPendingChallenges: () => void;
+
   connect: (token: string) => void;
   disconnect: () => void;
   joinQueue: (gameType: GameTypeName, gameMode?: GameMode) => void;
@@ -202,13 +216,21 @@ function applyMessage(
         pendingResume: null,
       });
       break;
+
+    case WsEvent.ChallengeReceived:
+      set({
+        challenges: [message.data, ...get().challenges],
+        hydrated: true,
+      });
+      break;
+
     case WsEvent.Error:
       set({
-        error: message.payload,
+        error: message.data,
         hydrated: true,
         lastShakeAt:
-          message.payload === "Question already answered" ||
-          message.payload === "Question not found"
+          message.data === "Question already answered" ||
+          message.data === "Question not found"
             ? Date.now()
             : get().lastShakeAt,
       });
@@ -228,6 +250,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   error: null,
   lastShakeAt: 0,
   pendingResume: null,
+  challenges: [],
   connect: (token) => {
     const current = get().socket;
     if (
@@ -347,6 +370,44 @@ export const useGameStore = create<GameState>((set, get) => ({
       JSON.stringify({ type: WsEvent.StopCustomRoom, payload: { roomId } }),
     );
   },
+
+  challengeUser: (
+    challengedId: string,
+    gameType: GameType,
+    gameMode: GameMode,
+  ) => {
+    get().socket?.send(
+      JSON.stringify({
+        type: WsEvent.ChallengeUser,
+        payload: { challengedId, gameType, gameMode },
+      }),
+    );
+  },
+  acceptChallenge: (challengeId: string) => {
+    get().socket?.send(
+      JSON.stringify({
+        type: WsEvent.AcceptChallenge,
+        payload: { challengeId },
+      }),
+    );
+  },
+  declineChallenge: (challengeId: string) => {
+    get().socket?.send(
+      JSON.stringify({
+        type: WsEvent.DeclineChallenge,
+        payload: { challengeId },
+      }),
+    );
+  },
+  removeChallenge: (challengeId: string) => {
+    set({
+      challenges: get().challenges.filter(
+        (challenge) => challenge.id !== challengeId,
+      ),
+    });
+  },
+  clearPendingChallenges: () => set({ challenges: [] }),
+
   clearError: () => set({ error: null }),
   resetMatch: () =>
     set({

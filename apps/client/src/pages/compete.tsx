@@ -33,7 +33,7 @@ export function CompetePage() {
             Play Together
           </h1>
 
-          <p className="mt-3 max-w-lg text-base text-muted-foreground">
+          <p className="max-w-lg subheading text-sm! font-semibold">
             Create a private room or join a friend using
             their room code.
           </p>
@@ -49,7 +49,7 @@ export function CompetePage() {
               Create Room
             </h2>
 
-            <p className="mt-2 min-h-12 text-sm leading-6 text-muted-foreground">
+            <p className="mt-2 min-h-12 subheading">
               Create a private game and invite your
               friends with a shareable room code.
             </p>
@@ -73,7 +73,7 @@ export function CompetePage() {
               Join Room
             </h2>
 
-            <p className="mt-2 min-h-12 text-sm leading-6 text-muted-foreground">
+            <p className="mt-2 min-h-12 subheading">
               Enter a friend's room code and jump
               straight into their lobby.
             </p>
