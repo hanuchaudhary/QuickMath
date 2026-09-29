@@ -135,44 +135,59 @@ export class GameManager {
       });
     }
 
-    const privateRoom: GameRoom = {
+    const room: GameRoom = {
       id: crypto.randomUUID(),
-      gameType: challenge.gameType,
-      gameMode: challenge.gameMode,
-      players: [challenged.id, challenge.challenger.id],
-      status: "WAITING",
-      questions: [],
-      gameConfig: DEFAULT_GAME_CONFIG_BY_MODE[challenge.gameMode],
       hostId: challenge.challenger.id,
       isPrivate: true,
       joinCode: generateJoinCode(),
-    };
-
-    this.createCustomRoom(challenge.challenger as User, {
       gameType: challenge.gameType,
       gameMode: challenge.gameMode,
-      gameConfig: {
-        difficulty: DEFAULT_GAME_CONFIG_BY_MODE[challenge.gameMode].difficulty,
-        maxPlayers: 2,
-        timeLimit: DEFAULT_GAME_CONFIG_BY_MODE[challenge.gameMode].timeLimit,
-      },
+      gameConfig: getGameConfig(challenge.gameType, challenge.gameMode),
+      players: [challenge.challenger.id, challenge.challenged.id],
+      status: "WAITING",
+      questions: [],
+    };
+
+    this.roomManager.createRoom(room);
+
+    this.roomManager.setPlayerState(
+      room.id,
+      emptyPlayer(challenge.challenger.id),
+    );
+    this.roomManager.setPlayerState(
+      room.id,
+      emptyPlayer(challenge.challenged.id),
+    );
+
+    this.wsManager.broadcast(room.players, {
+      type: WsEvent.CustomRoomCreated,
+      data: this.roomPayload(room),
     });
   }
 
-  declineChallenge(challenged: User, payload: { challengerId: string }) {
-    const { challengerId } = payload;
-    const challenger = this.userManager.getUser(challengerId);
-    if (!challenger) {
+  declineChallenge(challenged: User, payload: { challengeId: string }) {
+    const { challengeId } = payload;
+    const challenge = this.roomManager.getChallengeById(challengeId);
+    if (!challenge) {
       this.wsManager.send(challenged.id, {
         type: WsEvent.Error,
-        payload: "Challenger not found",
+        payload: "Challenge not found",
       });
       return;
     }
 
-    this.wsManager.send(challenger.id, {
+    if (challenge.challenged.id !== challenged.id) {
+      this.wsManager.send(challenged.id, {
+        type: WsEvent.Error,
+        payload: "You are not the challenged user",
+      });
+      return;
+    }
+
+    this.roomManager.removeChallenge(challengeId);
+    this.wsManager.send(challenged.id, {
       type: WsEvent.ChallengeDeclined,
-      data: { challengedId: challenged.id },
+      data: { challengeId },
     });
   }
 
