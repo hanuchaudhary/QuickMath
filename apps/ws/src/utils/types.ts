@@ -8,7 +8,7 @@ import type {
 } from "@quickmath/common";
 import type { Difficulty, Question } from "./math";
 
-export type RoomStatus = "WAITING" | "STARTING" | "PLAYING" | "FINISHED";
+export type RoomStatus = "WAITING" | "STARTING" | "PLAYING" | "FINISHED" | "EXITED";
 
 export type User = {
   id: string;

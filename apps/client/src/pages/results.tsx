@@ -11,12 +11,7 @@ export function ResultsPage() {
   const navigate = useNavigate();
   const { type, mode } = readGameQuery(location.search);
   const user = useAuthStore((s) => s.user);
-  const room = useGameStore((s) => s.room);
-  const stats = useGameStore((s) => s.stats);
-  const winnerId = useGameStore((s) => s.winnerId);
-  const resetMatch = useGameStore((s) => s.resetMatch);
-  const connected = useGameStore((s) => s.connected);
-  const hydrated = useGameStore((s) => s.hydrated);
+  const { room, stats, winnerId, resetMatch, connected, hydrated } = useGameStore();
 
   const won = winnerId === user?.id;
   const tied = winnerId === null;

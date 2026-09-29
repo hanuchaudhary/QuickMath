@@ -14,7 +14,13 @@ import {
   type RoomChallenge,
   type RoomPayload,
 } from "@quickmath/common";
-import type { GameRoom, PhaseContext, PlayerState, User } from "../utils/types";
+import type {
+  GameRoom,
+  PhaseContext,
+  PlayerState,
+  RoomStatus,
+  User,
+} from "../utils/types";
 import type { RoomManager } from "./room.manager";
 import type { UserManager } from "./user.manager";
 import type { WsManager } from "./ws.manager";
@@ -49,14 +55,6 @@ export class GameManager {
     const existingChallenge =
       this.roomManager.getChallengeByChallengedId(challengedId);
 
-    // if (existingChallenge?.challenger.id === challenger.id) {
-    //   this.wsManager.send(challenger.id, {
-    //     type: WsEvent.Error,
-    //     data: "You have already challenged this user",
-    //   });
-    //   return;
-    // }
-
     if (
       existingChallenge &&
       existingChallenge.createdAt > new Date(Date.now() - 1000 * 15)
@@ -69,6 +67,16 @@ export class GameManager {
     }
 
     const challenged = this.userManager.getUser(challengedId);
+
+    const ifUserIsInAnotherRoom = this.roomManager.getRoomByUser(challengedId);
+    if (ifUserIsInAnotherRoom) {
+      this.wsManager.send(challenger.id, {
+        type: WsEvent.Error,
+        payload: "User is already in another room",
+      });
+      return;
+    }
+
     if (!challenged) {
       this.wsManager.send(challenger.id, {
         type: WsEvent.Error,
@@ -218,11 +226,22 @@ export class GameManager {
       data: this.roomPayload(room),
     });
   }
+
   joinCustomRoom(user: User, payload: JoinCustomRoomSchema) {
     const { joinCode } = payload;
     const room = this.roomManager
       .getRooms()
       .find((room) => room.joinCode === joinCode);
+
+    if (room?.status === "FINISHED") {
+      this.roomManager.deleteRoom(room.id);
+      this.wsManager.send(user.id, {
+        type: WsEvent.Error,
+        payload: "Room is finished",
+      });
+      return;
+    }
+
     if (!room) {
       this.wsManager.send(user.id, {
         type: WsEvent.Error,
@@ -297,7 +316,7 @@ export class GameManager {
     this.beginMatch(room, room.gameType, room.gameMode);
   }
 
-  stopCustomRoom(user: User, payload: { roomId: string }) {
+  exitCustomRoom(user: User, payload: { roomId: string }) {
     const { roomId } = payload;
     const room = this.roomManager.getRoom(roomId);
     if (!room) {
@@ -307,18 +326,32 @@ export class GameManager {
       });
       return;
     }
-    if (room.hostId !== user.id) {
+    if (!room.players.includes(user.id)) {
       this.wsManager.send(user.id, {
         type: WsEvent.Error,
-        payload: "You are not the host of this room",
+        payload: "You are not in this room",
       });
       return;
     }
-    this.finishGame(room);
-    this.wsManager.send(user.id, {
-      type: WsEvent.StopCustomRoom,
-      data: this.roomPayload(room),
-    });
+
+    if (room.hostId === user.id) {
+      console.log("exited by host");
+      this.roomManager.deleteRoom(room.id);
+      this.wsManager.broadcast(room.players, {
+        type: WsEvent.ExitCustomRoom,
+        data: null,
+      });
+    } else {
+      this.roomManager.removePlayer(room.id, user.id);
+      this.wsManager.send(user.id, {
+        type: WsEvent.ExitCustomRoom,
+        data: null,
+      });
+      this.wsManager.broadcast(room.players, {
+        type: WsEvent.ExitCustomRoom,
+        data: this.roomPayload(room),
+      });
+    }
   }
 
   play(user: User, gameType: unknown, gameMode: unknown) {
@@ -821,7 +854,7 @@ export class GameManager {
           username: user.username,
           avatar: user.avatar,
         })),
-      status: room.status,
+      status: room.status as RoomStatus,
       startedAt: room.startedAt,
       endedAt: room.endedAt,
     };

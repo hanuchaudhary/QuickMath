@@ -139,23 +139,37 @@ export function JoinRoomPage() {
     );
   }
 
-  if (!room || room.joinCode !== joinCode) {
+  if (!room) {
     return (
       <div className="grid min-h-dvh place-items-center">
         <div className="text-center">
           <p className="text-lg font-semibold">
-            Joining room...
+            Room Disbanded
           </p>
+          <ThreeDButton
+            onClick={() => navigate("/compete")}
+            className="mt-4 px-4 py-2"
+          >
+            Go Back
+          </ThreeDButton>
+        </div>
+      </div>
+    );
+  }
 
-          <p className="mt-2 text-sm text-white/40">
-            {joinCode}
+  if (room.joinCode !== joinCode) {
+    return (
+      <div className="grid min-h-dvh place-items-center">
+        <div className="text-center">
+          <p className="text-lg font-semibold">
+            Room not found
           </p>
-
-          {error && (
-            <p className="mt-4 text-sm text-red-400">
-              {error}
-            </p>
-          )}
+          <ThreeDButton
+            onClick={() => navigate("/compete")}
+            className="mt-4 px-4 py-2"
+          >
+            Go Back
+          </ThreeDButton>
         </div>
       </div>
     );
@@ -192,7 +206,7 @@ export function JoinRoomPage() {
               </h1>
             </div>
 
-            {isHost && !isStarting && (
+            {!isStarting && (
               <ThreeDButton
                 onClick={() => {
                   stopCustomRoom(room.id);

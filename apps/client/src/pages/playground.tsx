@@ -41,9 +41,8 @@ export function PlaygroundPage() {
   }, [now, room]);
 
   const me = room?.players.find((p) => p.id === user?.id) ?? room?.players[0];
-  const opponent = room?.players.find((p) => p.id !== user?.id);
+  const opponents = room?.players.filter((p) => p.id !== user?.id);
   const myScore = stats.find((s) => s.userId === me?.id)?.score ?? 0;
-  const theirScore = stats.find((s) => s.userId === opponent?.id)?.score ?? 0;
   const minutes = String(Math.floor(remaining / 60));
   const seconds = String(remaining % 60).padStart(2, "0");
 
@@ -104,7 +103,7 @@ export function PlaygroundPage() {
           <IconX size={16} />
         </span>
       </ThreeDButton>
-      <div className="flex w-full max-w-xl items-start justify-between">
+      <div className="w-full max-w-xl grid grid-cols-3 place-items-center">
         <PlayerHud
           name={me?.username ?? "You"}
           avatar={me?.avatar}
@@ -112,16 +111,24 @@ export function PlaygroundPage() {
           align="left"
           isMe={me?.id === user?.id}
         />
-        <div className="rounded-lg bg-background px-4 py-1 font-display text-2xl font-bold tracking-[0.15em] text-white border border-b-4 border-neutral-700">
+        <div className="rounded-lg bg-background px-4 py-1 font-display text-2xl font-bold tracking-[0.15em] text-white border border-b-4 border-neutral-700 w-fit">
           {minutes}:{seconds}
         </div>
-        <PlayerHud
-          name={opponent?.username ?? "Waiting"}
-          avatar={opponent?.avatar}
-          score={theirScore}
-          align="right"
-          isMe={false}
-        />
+        <div className="flex items-center -space-x-6">
+          {opponents && opponents.length > 0 && (
+            opponents.slice(0, 3).map((opponent) => (
+              <PlayerHud
+                multiple={opponents.length > 1}
+                key={opponent.id}
+                name={opponent.username}
+                avatar={opponent.avatar}
+                score={stats.find((s) => s.userId === opponent.id)?.score ?? 0}
+                align="left"
+                isMe={false}
+              />
+            ))
+          )}
+        </div>
       </div>
 
       <div className="relative mt-16 grid min-h-[320px] w-full max-w-lg place-items-center">
@@ -188,6 +195,7 @@ export function PlaygroundPage() {
 }
 
 function PlayerHud({
+  multiple,
   name,
   avatar,
   score,
@@ -199,18 +207,30 @@ function PlayerHud({
   score: number;
   align: "left" | "right";
   isMe: boolean;
+  multiple?: boolean;
 }) {
   return (
-    <div className={cn("flex items-center gap-3", align === "right" && "flex-row-reverse")}>
-      <div className={cn("ring-4 rounded-3xl p-2", isMe ? "ring-red-400" : "ring-white/10")}>
-        <UserAvatar name={name} src={avatar || undefined} />
-      </div>
-      <div className={cn(align === "right" && "text-right")}>
-        <p className="max-w-[90px] truncate text-sm font-semibold">{name}</p>
-        <div className="mt-1 inline-flex rounded-full bg-white/10 px-2 py-0.5 font-mono text-xs tabular-nums">
-          {score}
+    <div className={cn("flex relative items-center gap-3", align === "right" && "flex-row-reverse")}>
+      <UserAvatar className={cn("ring-4", isMe && "ring-red-400")} name={name} src={avatar || undefined} />
+      {!multiple && (
+        <div className={cn(align === "right" && "text-right")}>
+          <p className="max-w-[90px] truncate text-sm font-semibold">{name}{isMe && " (You)"}</p>
+          <div className="bg-secondary size-6 flex items-center justify-center rounded-full text-xs font-semibold font-display border">
+            {score}
+          </div>
+        </div>)}
+      {multiple && (
+        <div className="flex items-center gap-2">
+          {
+            isMe && (
+              <p className="max-w-[90px] truncate text-sm font-semibold">{name}{isMe && " (You)"}</p>
+            )
+          }
+          <div className="bg-secondary absolute top-0 -left-1 size-6 flex items-center justify-center rounded-full text-xs font-semibold font-display border">
+            {score}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

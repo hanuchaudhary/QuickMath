@@ -25,7 +25,7 @@ export const WsEvent = {
   CustomRoomCreated: "CUSTOM_ROOM_CREATED",
   UserJoinedCustomRoom: "USER_JOINED_CUSTOM_ROOM",
   StartCustomRoom: "START_CUSTOM_ROOM",
-  StopCustomRoom: "STOP_CUSTOM_ROOM",
+  ExitCustomRoom: "EXIT_CUSTOM_ROOM",
   
   ChallengeUser: "CHALLENGE_USER",
   ChallengeReceived: "CHALLENGE_RECEIVED",
@@ -73,7 +73,7 @@ export type RoomSnapshot = {
   gameMode: GameMode;
   gameConfig: GameConfig;
   players: PublicUser[];
-  status: "WAITING" | "STARTING" | "PLAYING" | "FINISHED";
+  status: "WAITING" | "STARTING" | "PLAYING" | "FINISHED" | "EXITED";
   startedAt?: number;
   endedAt?: number;
 };
@@ -104,8 +104,20 @@ export type ClientMessage =
       payload: { roomId: string };
     }
   | {
-      type: typeof WsEvent.StopCustomRoom;
+      type: typeof WsEvent.ExitCustomRoom;
       payload: { roomId: string };
+    }
+  | {
+      type: typeof WsEvent.ChallengeDeclined;
+      payload: { challengeId: string; challenged: PublicUser };
+    }
+  | {
+      type: typeof WsEvent.ChallengeAccepted;
+      payload: { challengeId: string; challenged: PublicUser };
+    }
+  | {
+      type: typeof WsEvent.ChallengeReceived;
+      payload: { challenge: RoomChallenge };
     };
 
 export type RoomPayload = {
@@ -152,11 +164,14 @@ export type ServerMessage =
   | { type: typeof WsEvent.Error; data: string }
   | { type: typeof WsEvent.CustomRoomCreated; data: RoomSnapshot }
   | { type: typeof WsEvent.UserJoinedCustomRoom; data: RoomSnapshot }
-  | { type: typeof WsEvent.StopCustomRoom; data: { roomId: string } }
+  | { type: typeof WsEvent.ExitCustomRoom; data: RoomSnapshot }
   | { type: typeof WsEvent.StartCustomRoom; data: RoomSnapshot }
   | { type: typeof WsEvent.JoinCustomRoom; data: RoomSnapshot }
   | { type: typeof WsEvent.CreateCustomRoom; data: RoomSnapshot }
-  | { type: typeof WsEvent.StartCustomRoom; data: RoomSnapshot };
+  | { type: typeof WsEvent.StartCustomRoom; data: RoomSnapshot }
+  | { type: typeof WsEvent.ChallengeDeclined; data: { challengeId: string; challenged: PublicUser } }
+  | { type: typeof WsEvent.ChallengeAccepted; data: { challengeId: string; challenged: PublicUser } }
+  | { type: typeof WsEvent.ChallengeReceived; data: { challenge: RoomChallenge } };
 
 export function toPublicQuestion(question: PublicQuestion): PublicQuestion {
   return question;

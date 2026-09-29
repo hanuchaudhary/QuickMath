@@ -55,8 +55,8 @@ wss.on("connection", (ws, req) => {
         case WsEvent.StartCustomRoom:
           gameManager.startCustomRoom(user, payload);
           break;
-        case WsEvent.StopCustomRoom:
-          gameManager.stopCustomRoom(user, payload);
+        case WsEvent.ExitCustomRoom:
+          gameManager.exitCustomRoom(user, payload);
           break;
         case WsEvent.ChallengeUser:
           gameManager.challengeUser(user, payload);

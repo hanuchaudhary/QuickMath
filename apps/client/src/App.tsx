@@ -49,6 +49,11 @@ function MatchNavigator() {
     if (pendingResume) return;
     if (!room) return;
     if (room.isPrivate) {
+      if (room.status === "EXITED") {
+        navigate("/compete", { replace: true });
+        return;
+      }
+
       if (room.status === "WAITING" || room.status === "STARTING") {
         const path = `/compete/join?joinCode=${room.joinCode}`;
 

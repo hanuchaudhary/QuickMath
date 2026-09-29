@@ -15,6 +15,7 @@ import {
   type ServerMessage,
   type RoomChallenge,
 } from "@quickmath/common";
+import { useAuthStore } from "./auth.store";
 
 const WS_URL = import.meta.env.VITE_WS_URL ?? "ws://localhost:8080";
 
@@ -25,6 +26,7 @@ type ResumeOffer = {
 };
 
 type GameState = {
+  message: string;
   socket: WebSocket | null;
   connected: boolean;
   hydrated: boolean;
@@ -207,19 +209,37 @@ function applyMessage(
         pendingResume: null,
       });
       break;
-    case WsEvent.StopCustomRoom:
+    case WsEvent.ExitCustomRoom:
       set({
-        room: null,
+        room: applyRoom(message.data),
         winnerId: null,
         error: null,
         hydrated: true,
         pendingResume: null,
       });
       break;
-
     case WsEvent.ChallengeReceived:
       set({
-        challenges: [message.data, ...get().challenges],
+        challenges: [message.data.challenge, ...get().challenges],
+        hydrated: true,
+      });
+      break;
+
+    case WsEvent.ChallengeDeclined:
+      set({
+        challenges: get().challenges.filter(
+          (challenge) => challenge.id !== message.data.challengeId,
+        ),
+        hydrated: true,
+        message: `Challenge declined by ${message.data.challenged.username}`,
+      });
+      break;
+
+    case WsEvent.ChallengeAccepted:
+      set({
+        challenges: get().challenges.filter(
+          (challenge) => challenge.id !== message.data.challengeId,
+        ),
         hydrated: true,
       });
       break;
@@ -241,6 +261,7 @@ function applyMessage(
 export const useGameStore = create<GameState>((set, get) => ({
   socket: null,
   connected: false,
+  message: "",
   hydrated: false,
   onlineUsers: [],
   room: null,
@@ -367,7 +388,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
   stopCustomRoom: (roomId: string) => {
     get().socket?.send(
-      JSON.stringify({ type: WsEvent.StopCustomRoom, payload: { roomId } }),
+      JSON.stringify({ type: WsEvent.ExitCustomRoom, payload: { roomId } }),
     );
   },
 
