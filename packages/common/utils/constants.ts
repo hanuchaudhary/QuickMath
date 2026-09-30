@@ -47,7 +47,7 @@ export const DEFAULT_GAME_CONFIG_BY_MODE: Record<GameMode, GameConfig> = {
   [GameMode.DUEL]: SHARED_CONFIG,
   [GameMode.FASTEST_FINGER_FIRST]: {
     ...SHARED_CONFIG,
-    timeLimit: 420,
+    timeLimit: 120,
   },
   [GameMode.MIND_SNAP_DUEL]: {
     ...SHARED_CONFIG,

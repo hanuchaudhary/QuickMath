@@ -192,11 +192,11 @@ export class GameManager {
       return;
     }
 
-    this.roomManager.removeChallenge(challengeId);
-    this.wsManager.send(challenged.id, {
+    this.wsManager.send(challenge.challenger.id, {
       type: WsEvent.ChallengeDeclined,
       data: { challengeId },
     });
+    this.roomManager.removeChallenge(challengeId);
   }
 
   createCustomRoom(user: User, payload: CreateCustomRoomSchema) {

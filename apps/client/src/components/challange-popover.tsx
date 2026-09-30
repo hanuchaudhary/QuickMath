@@ -11,7 +11,7 @@ import { toast } from "sonner";
 export function ChallengePopover() {
     const { challenges, removeChallenge, acceptChallenge, declineChallenge, error, clearError } =
         useGameStore();
-
+        
     useEffect(() => {
         const timeout = setTimeout(() => {
             clearError();

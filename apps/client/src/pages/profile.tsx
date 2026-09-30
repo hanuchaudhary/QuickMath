@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { gameTitle, isGameType, resolveGameMode } from "@quickmath/common";
+import { GameMode, gameTitle, GameType, isGameType, resolveGameMode, type CreateCustomRoomSchema } from "@quickmath/common";
 import { useAuthStore } from "@/stores/auth.store";
 import { UserAvatar } from "@/components/user-avatar";
 import { NavStats } from "@/components/nav-stats";
@@ -8,10 +8,12 @@ import { ConfirmDialog } from "@/components/confirm-dialog";
 import { http } from "@/lib/http";
 import { ThreeDButton } from "@/components/ui/3d-button";
 import { useGameStore } from "@/stores/game.store";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import RoomForm from "./room-form";
+import { toast } from "sonner";
 
 export function ProfilePage() {
   const { username: routeName } = useParams();
-  const navigate = useNavigate();
   const { user: me, logout } = useAuthStore();
 
   const [profile, setProfile] = useState<{
@@ -26,7 +28,6 @@ export function ProfilePage() {
     Awaited<ReturnType<typeof http.getProfile>>["games"]
   >([]);
   const [confirmLogout, setConfirmLogout] = useState(false);
-  const { connected, challengeUser } = useGameStore()
 
   const isOwner = Boolean(me && profile && me.id === profile.id);
 
@@ -46,15 +47,6 @@ export function ProfilePage() {
       });
   }, [routeName]);
 
-  const handleChallenge = () => {
-    if (!profile) return;
-    if (connected) {
-      challengeUser(profile.id, "MATHS", "DUELS");
-
-    } else {
-      navigate("/arena");
-    }
-  }
 
   return (
     <div className="md:grid min-h-dvh grid-cols-6 md:px-8 py-6">
@@ -102,13 +94,9 @@ export function ProfilePage() {
                   Log out
                 </ThreeDButton>
               ) : (
-                <ThreeDButton
-                  type="button"
-                  className="bg-neutral-600 border-neutral-500 text-white py-2 w-fit px-10"
-                  onClick={handleChallenge}
-                >
-                  Challenge
-                </ThreeDButton>
+                <div className="flex items-center gap-2">
+                  <ChallengeFormDialog challengedId={profile?.id!} challengedUsername={profile?.username!} />
+                </div>
               )}
             </div>
 
@@ -171,4 +159,70 @@ function Stat({ label, value }: { label: string; value: number }) {
       <p className="mt-2 font-display text-4xl tracking-tighter">{value}</p>
     </div>
   );
+}
+
+const ChallengeFormDialog = ({ challengedId, challengedUsername }: { challengedId: string, challengedUsername: string }) => {
+  const [open, setOpen] = useState(false);
+  const [config, setConfig] = useState<CreateCustomRoomSchema>({
+    gameType: GameType.MATHS,
+    gameMode: GameMode.DUEL,
+    gameConfig: {
+      difficulty: "medium",
+      timeLimit: 2,
+      maxPlayers: 2,
+    },
+  });
+
+  const { connected, challengeUser } = useGameStore();
+  const navigate = useNavigate();
+
+  const handleGameTypeChange = (value: string) => {
+    setConfig((prev) => ({
+      ...prev,
+      gameType: value as GameType,
+    }));
+  }
+
+  const handleChallenge = () => {
+    if (!challengedId) return;
+    if (connected) {
+      challengeUser(challengedId, config.gameType, config.gameMode);
+      toast.success(`Challenge sent to ${challengedUsername}`);
+      setOpen(false);
+    } else {
+      navigate("/arena");
+      setOpen(false);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger>
+        <span
+          className="px-6 py-2 rounded-lg bg-neutral-200 border-neutral-400 hover:bg-white hover:border-neutral-400 border border-b-4 font-display text-xl font-semibold text-secondary transition-all cursor-pointer active:border-b-0 active:translate-y-0.5 active:scale-95"
+        >
+          Challenge
+        </span>
+      </DialogTrigger>
+      <DialogContent className={"border border-b-6 md:min-w-2xl"} showCloseButton={false}>
+        <div>
+          <h2 className="font-display text-3xl font-bold">
+            Challenge <span className="text-red-400">{challengedUsername}</span>
+          </h2>
+          <p className="subheading text-xs! font-semibold!">
+            Choose the game mode and difficulty you want to play.
+          </p>
+        </div>
+        <RoomForm handleGameTypeChange={handleGameTypeChange} config={config} setConfig={setConfig} />
+        <ThreeDButton
+          type="button"
+          variant="secondary"
+          className="w-full py-2 "
+          onClick={handleChallenge}
+        >
+          Challenge
+        </ThreeDButton>
+      </DialogContent>
+    </Dialog>
+  )
 }

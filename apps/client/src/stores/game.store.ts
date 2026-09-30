@@ -15,7 +15,7 @@ import {
   type ServerMessage,
   type RoomChallenge,
 } from "@quickmath/common";
-import { useAuthStore } from "./auth.store";
+import { toast } from "sonner";
 
 const WS_URL = import.meta.env.VITE_WS_URL ?? "ws://localhost:8080";
 
@@ -27,6 +27,7 @@ type ResumeOffer = {
 
 type GameState = {
   message: string;
+  clearMessage: () => void;
   socket: WebSocket | null;
   connected: boolean;
   hydrated: boolean;
@@ -220,7 +221,7 @@ function applyMessage(
       break;
     case WsEvent.ChallengeReceived:
       set({
-        challenges: [message.data.challenge, ...get().challenges],
+        challenges: [message.data, ...get().challenges],
         hydrated: true,
       });
       break;
@@ -259,6 +260,7 @@ function applyMessage(
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
+  clearMessage: () => set({ message: "" }),
   socket: null,
   connected: false,
   message: "",

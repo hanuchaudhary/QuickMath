@@ -171,7 +171,7 @@ export type ServerMessage =
   | { type: typeof WsEvent.StartCustomRoom; data: RoomSnapshot }
   | { type: typeof WsEvent.ChallengeDeclined; data: { challengeId: string; challenged: PublicUser } }
   | { type: typeof WsEvent.ChallengeAccepted; data: { challengeId: string; challenged: PublicUser } }
-  | { type: typeof WsEvent.ChallengeReceived; data: { challenge: RoomChallenge } };
+  | { type: typeof WsEvent.ChallengeReceived; data: RoomChallenge };
 
 export function toPublicQuestion(question: PublicQuestion): PublicQuestion {
   return question;

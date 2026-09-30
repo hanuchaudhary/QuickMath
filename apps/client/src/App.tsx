@@ -18,7 +18,7 @@ import { CompetePage } from "./pages/compete";
 import CreateRoomPage from "./pages/create";
 import { JoinRoomPage } from "./pages/join";
 import { ChallengePopover } from "./components/challange-popover";
-import { Toaster } from "sonner";
+import { toast, Toaster } from "sonner";
 
 
 function Protected({ children }: { children: React.ReactNode }) {
@@ -147,6 +147,26 @@ function MatchNavigator() {
   return null;
 }
 
+function GameNotifications() {
+  const message = useGameStore((state) => state.message);
+  const clearMessage = useGameStore((state) => state.clearMessage);
+  console.log(message)
+
+  useEffect(() => {
+    if (!message) return;
+
+    console.log("TOAST MESSAGE:", message);
+
+    toast.error(message, {
+      duration: 2000,
+      id: message,
+    });
+
+    clearMessage();
+  }, [message, clearMessage]);
+  return null;
+}
+
 function ResumeDuelDialog() {
   const pendingResume = useGameStore((s) => s.pendingResume);
   const resumeMatch = useGameStore((s) => s.resumeMatch);
@@ -193,6 +213,7 @@ export default function App() {
       <BrowserRouter>
         <Boot />
         <ChallengePopover />
+        <GameNotifications />
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/auth" element={<AuthPage />} />
